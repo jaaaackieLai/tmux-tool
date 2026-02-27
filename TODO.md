@@ -1,2 +1,0 @@
-- curl 安裝
-- brew install
