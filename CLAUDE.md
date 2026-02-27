@@ -10,20 +10,20 @@ tmux-tool/
   install.sh            # 安裝腳本（一起安裝 lib/ 目錄）
   CLAUDE.md             # 本檔案
   lib/
-    constants.sh        # 常數、顏色、全域狀態宣告（~35 行）
+    constants.sh        # 常數、顏色、全域狀態宣告（~38 行，含 VIEW_MODE）
     utils.sh            # cursor/terminal/die/check_deps（~25 行）
     sessions.sh         # tmux 操作：refresh/get_info/capture（~45 行）
     ai.sh               # AI 摘要：enabled/start/load/cleanup（~80 行）
-    render.sh           # TUI 繪製：draw_*/render（~140 行）
-    actions.sh          # 使用者操作：attach/rename/kill/new（~110 行）
-    input.sh            # 鍵盤輸入：read_key/handle_input（~65 行）
+    render.sh           # TUI 繪製：render_list/render_detail/draw_*（~200 行）
+    actions.sh          # 使用者操作：attach/rename/kill/new（~115 行）
+    input.sh            # 鍵盤輸入：read_key/handle_input/handle_detail_input（~80 行）
   tests/
     bats/               # BATS 1.13.0 (git submodule)
     test_helper.bash    # 共用 helper（定義 load_lib）
     test_utils.bats     # cursor_to 輸出格式、die exit code
     test_sessions.bats  # refresh_sessions SELECTED 夾緊邏輯
     test_ai.bats        # ai_enabled 判斷、load_ai_results 解析
-    test_input.bats     # read_key escape 序列、SELECTED 邊界
+    test_input.bats     # read_key escape 序列、SELECTED 邊界、VIEW_MODE 切換
 ```
 
 ### Source 載入順序（依賴由低到高）
@@ -49,17 +49,30 @@ constants.sh → utils.sh → sessions.sh → ai.sh → render.sh → actions.sh
 
 ## 功能
 
+兩層式 UI：列表頁選擇 session，Enter 進入詳細頁操作。
+
+### 列表頁按鍵
+
 | 按鍵 | 功能 |
 |------|------|
 | Up/Down | 上下選擇 session |
-| Enter | attach 進入 session |
-| r | rename（預填 AI 建議名稱） |
-| k | kill（需確認） |
+| Enter | 進入 session 詳細頁 |
 | n | 建立新 session |
 | f | 重新整理 + 重跑 AI 摘要 |
 | q | 離開 |
 
+### 詳細頁按鍵
+
+| 按鍵 | 功能 |
+|------|------|
+| Enter/a | attach 進入 session |
+| r | rename（預填 AI 建議名稱） |
+| k | kill（需確認） |
+| ESC/q | 回到列表頁 |
+
 ## TUI 佈局
+
+### 列表頁
 
 ```
  tmux-session manager  v1.0.0
@@ -71,7 +84,22 @@ constants.sh → utils.sh → sessions.sh → ai.sh → render.sh → actions.sh
  Preview (session-0):
    最後 N 行終端輸出...
  ─────────────────────────────
- [Enter] attach  [r] rename  [k] kill  [n] new  [f] refresh  [q] quit
+ [Enter] open  [n] new  [f] refresh  [q] quit
+```
+
+### 詳細頁
+
+```
+ session-0                    v1.0.0
+ ─────────────────────────────
+ Info: 2 windows (created Thu Jan 1 00:00:00 2025)
+ AI:   正在開發登入功能...
+ ─────────────────────────────
+ Preview:
+   （更大的預覽區，佔滿剩餘空間）
+   ...
+ ─────────────────────────────
+ [Enter/a] attach  [r] rename  [k] kill  [ESC/q] back
 ```
 
 ## 安裝
