@@ -16,7 +16,7 @@ start_ai_summaries() {
     # Kill old background AI jobs and clear stale results
     jobs -p 2>/dev/null | xargs kill 2>/dev/null || true
     rm -rf "$AI_TEMP_DIR"
-    mkdir -p "$AI_TEMP_DIR"
+    mkdir -p -m 700 "$AI_TEMP_DIR"
 
     local i
     for i in "${!SESSIONS[@]}"; do
@@ -39,13 +39,22 @@ ${content}"
                 --arg prompt "$prompt" \
                 '{model: $model, max_tokens: 150, messages: [{role: "user", content: $prompt}]}')
 
+            # Write API key to a mode-600 temp file so it does not appear
+            # in the process list (ps aux) while curl is running.
+            local key_file
+            key_file=$(mktemp)
+            chmod 600 "$key_file"
+            printf 'x-api-key: %s\n' "${ANTHROPIC_API_KEY}" > "$key_file"
+
             local response
             response=$(curl -s --max-time 15 \
-                -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+                --header "@${key_file}" \
                 -H "anthropic-version: 2023-06-01" \
                 -H "content-type: application/json" \
                 "https://api.anthropic.com/v1/messages" \
                 -d "$body" 2>/dev/null)
+
+            rm -f "$key_file"
 
             if [[ -n "$response" ]]; then
                 local text
