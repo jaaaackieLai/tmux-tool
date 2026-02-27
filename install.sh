@@ -37,10 +37,12 @@ echo "Installing tmux-session to ${INSTALL_DIR}..."
 if [[ -w "$INSTALL_DIR" ]]; then
     cp "${SCRIPT_DIR}/tmux-session" "${INSTALL_DIR}/tmux-session"
     chmod +x "${INSTALL_DIR}/tmux-session"
+    cp -r "${SCRIPT_DIR}/lib" "${INSTALL_DIR}/lib"
 else
     echo "Need sudo to write to ${INSTALL_DIR}"
     sudo cp "${SCRIPT_DIR}/tmux-session" "${INSTALL_DIR}/tmux-session"
     sudo chmod +x "${INSTALL_DIR}/tmux-session"
+    sudo cp -r "${SCRIPT_DIR}/lib" "${INSTALL_DIR}/lib"
 fi
 
 echo ""

@@ -6,9 +6,38 @@ PTT 風格的 tmux session 管理工具，專為同時跑多個 Claude Code sess
 
 ```
 tmux-tool/
-  tmux-session       # 主程式 (bash script, ~350 行)
-  install.sh         # 安裝腳本
-  CLAUDE.md          # 本檔案
+  tmux-session          # 主入口 ~74 行（bootstrap: source libs + cleanup + main）
+  install.sh            # 安裝腳本（一起安裝 lib/ 目錄）
+  CLAUDE.md             # 本檔案
+  lib/
+    constants.sh        # 常數、顏色、全域狀態宣告（~35 行）
+    utils.sh            # cursor/terminal/die/check_deps（~25 行）
+    sessions.sh         # tmux 操作：refresh/get_info/capture（~45 行）
+    ai.sh               # AI 摘要：enabled/start/load/cleanup（~80 行）
+    render.sh           # TUI 繪製：draw_*/render（~140 行）
+    actions.sh          # 使用者操作：attach/rename/kill/new（~110 行）
+    input.sh            # 鍵盤輸入：read_key/handle_input（~65 行）
+  tests/
+    bats/               # BATS 1.13.0 (git submodule)
+    test_helper.bash    # 共用 helper（定義 load_lib）
+    test_utils.bats     # cursor_to 輸出格式、die exit code
+    test_sessions.bats  # refresh_sessions SELECTED 夾緊邏輯
+    test_ai.bats        # ai_enabled 判斷、load_ai_results 解析
+    test_input.bats     # read_key escape 序列、SELECTED 邊界
+```
+
+### Source 載入順序（依賴由低到高）
+
+```
+constants.sh → utils.sh → sessions.sh → ai.sh → render.sh → actions.sh → input.sh
+```
+
+主入口統一 source 全部，lib 檔案之間不互相 source。
+
+### 執行測試
+
+```bash
+./tests/bats/bin/bats tests/
 ```
 
 ## 技術架構
