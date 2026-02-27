@@ -126,10 +126,7 @@ draw_footer() {
     printf " ${GREEN}[Enter]${RESET} attach  ${YELLOW}[r]${RESET} rename  ${RED}[k]${RESET} kill  ${BLUE}[n]${RESET} new  ${DIM}[f]${RESET} refresh  ${DIM}[q]${RESET} quit"
 }
 
-render() {
-    get_term_size
-    load_ai_results
-
+render_list() {
     draw_header
 
     draw_session_list
@@ -137,4 +134,19 @@ render() {
     draw_separator $(( LIST_END + 1 ))
     draw_preview $(( LIST_END + 2 ))
     draw_footer
+}
+
+render_detail() {
+    render_list  # placeholder: will be replaced in behavioral commit
+}
+
+render() {
+    get_term_size
+    load_ai_results
+
+    if [[ "$VIEW_MODE" == "detail" ]]; then
+        render_detail
+    else
+        render_list
+    fi
 }

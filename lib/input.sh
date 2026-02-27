@@ -21,6 +21,11 @@ read_key() {
     fi
 }
 
+handle_detail_input() {
+    # placeholder: will be implemented in behavioral commit
+    handle_input
+}
+
 handle_input() {
     local key
     key=$(read_key)
