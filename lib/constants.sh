@@ -8,7 +8,7 @@ readonly VERSION="1.0.0"
 readonly PREVIEW_LINES=15
 readonly PREVIEW_MAX_COLS=80
 readonly CAPTURE_LINES=150
-readonly AI_TEMP_DIR="/tmp/tmux-session-ai-$$"
+AI_TEMP_DIR="/tmp/tmux-session-ai-$$"
 readonly AI_MODEL="claude-haiku-4-5-20251001"
 
 # ─── Colors and styles ───────────────────────────────────────────────
