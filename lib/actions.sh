@@ -30,20 +30,38 @@ action_rename() {
     cursor_to "$prompt_row" 1
     clear_line
 
-    # Restore terminal for input
-    stty "$SAVED_TTY" 2>/dev/null || true
-    stty echo icanon 2>/dev/null || true
-
     local new_name=""
-    local rl_bold=$'\001'"${BOLD}"$'\002'
-    local rl_dim=$'\001'"${DIM}"$'\002'
-    local rl_reset=$'\001'"${RESET}"$'\002'
+
     if [[ -n "$suggested" ]]; then
-        local prompt=" ${rl_bold}Rename '${session}' to${rl_reset} [${rl_dim}${suggested}${rl_reset}] (ESC/empty=cancel): "
-        IFS= read -r -e -p "$prompt" -i "$suggested" new_name || true
+        printf " ${BOLD}Rename '%s'${RESET} ${DIM}[Enter] AI: %s  [e] custom  [ESC] cancel${RESET}" "$session" "$suggested"
+        local choice=""
+        IFS= read -r -s -n 1 choice 2>/dev/null || true
+
+        case "$choice" in
+            ""|$'\n'|$'\r')
+                new_name="$suggested"
+                ;;
+            e|E)
+                stty "$SAVED_TTY" 2>/dev/null || true
+                stty echo icanon 2>/dev/null || true
+                cursor_to "$prompt_row" 1
+                clear_line
+                printf " ${BOLD}Custom name${RESET} ${DIM}(AI: %s, empty=cancel): ${RESET}" "$suggested"
+                IFS= read -r -e new_name || true
+                ;;
+            $'\x1b'|q|Q)
+                new_name=""
+                ;;
+            *)
+                new_name=""
+                ;;
+        esac
     else
-        local prompt=" ${rl_bold}Rename '${session}' to${rl_reset} (ESC/empty=cancel): "
-        IFS= read -r -e -p "$prompt" new_name || true
+        # Restore terminal for line input
+        stty "$SAVED_TTY" 2>/dev/null || true
+        stty echo icanon 2>/dev/null || true
+        printf " ${BOLD}Rename '%s' to${RESET} ${DIM}(empty=cancel): ${RESET}" "$session"
+        IFS= read -r -e new_name || true
     fi
 
     # Re-setup raw terminal
