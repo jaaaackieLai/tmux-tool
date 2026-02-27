@@ -164,3 +164,202 @@ load 'test_helper'
     [ "$status" -eq 0 ]
     [ "$output" = "2" ]
 }
+
+# ─── handle_input: ENTER switches to detail mode ─────────────────────
+
+@test "ENTER key in list mode sets VIEW_MODE to detail" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        VIEW_MODE='list'
+        read_key() { echo 'ENTER'; }
+        render() { :; }
+        handle_input
+        echo \"\$VIEW_MODE\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "detail" ]
+}
+
+@test "r key in list mode is ignored (no action)" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        VIEW_MODE='list'
+        read_key() { echo 'r'; }
+        render() { :; }
+        action_rename() { echo 'RENAMED'; }
+        handle_input
+        echo \"\$VIEW_MODE\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "list" ]
+}
+
+@test "k key in list mode is ignored (no action)" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        VIEW_MODE='list'
+        read_key() { echo 'k'; }
+        render() { :; }
+        action_kill() { echo 'KILLED'; }
+        handle_input
+        echo \"\$VIEW_MODE\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "list" ]
+}
+
+# ─── handle_detail_input tests ───────────────────────────────────────
+
+@test "ESC in detail mode sets VIEW_MODE back to list" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        VIEW_MODE='detail'
+        read_key() { echo 'ESC'; }
+        render() { :; }
+        handle_detail_input
+        echo \"\$VIEW_MODE\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "list" ]
+}
+
+@test "q in detail mode sets VIEW_MODE back to list" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        VIEW_MODE='detail'
+        read_key() { echo 'q'; }
+        render() { :; }
+        handle_detail_input
+        echo \"\$VIEW_MODE\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "list" ]
+}
+
+@test "a in detail mode calls action_attach" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        VIEW_MODE='detail'
+        read_key() { echo 'a'; }
+        render() { :; }
+        action_attach() { echo 'ATTACHED'; }
+        handle_detail_input
+        echo \"\$VIEW_MODE\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ATTACHED"* ]]
+}
+
+@test "ENTER in detail mode calls action_attach" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        VIEW_MODE='detail'
+        read_key() { echo 'ENTER'; }
+        render() { :; }
+        action_attach() { echo 'ATTACHED'; }
+        handle_detail_input
+        echo \"\$VIEW_MODE\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ATTACHED"* ]]
+}
+
+@test "r in detail mode calls action_rename" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        VIEW_MODE='detail'
+        read_key() { echo 'r'; }
+        render() { :; }
+        action_rename() { echo 'RENAMED'; }
+        handle_detail_input
+        echo \"\$VIEW_MODE\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"RENAMED"* ]]
+}
+
+@test "k in detail mode calls action_kill" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        VIEW_MODE='detail'
+        read_key() { echo 'k'; }
+        render() { :; }
+        action_kill() { echo 'KILLED'; }
+        handle_detail_input
+        echo \"\$VIEW_MODE\"
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"KILLED"* ]]
+}

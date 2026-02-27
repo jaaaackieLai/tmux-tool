@@ -22,8 +22,16 @@ read_key() {
 }
 
 handle_detail_input() {
-    # placeholder: will be implemented in behavioral commit
-    handle_input
+    local key
+    key=$(read_key)
+
+    case "$key" in
+        ENTER|a) action_attach ;;
+        r)       action_rename ;;
+        k)       action_kill ;;
+        ESC|q)   VIEW_MODE="list" ;;
+        TIMEOUT) ;;
+    esac
 }
 
 handle_input() {
@@ -42,17 +50,13 @@ handle_input() {
             fi
             ;;
         ENTER)
-            action_attach
-            ;;
-        r)
-            action_rename
+            if [[ ${#SESSIONS[@]} -gt 0 ]]; then
+                VIEW_MODE="detail"
+            fi
             ;;
         f)
             refresh_sessions
             start_ai_summaries
-            ;;
-        k)
-            action_kill
             ;;
         n)
             action_new

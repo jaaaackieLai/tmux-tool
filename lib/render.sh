@@ -123,7 +123,23 @@ draw_footer() {
 
     cursor_to "$row" 1
     clear_line
-    printf " ${GREEN}[Enter]${RESET} attach  ${YELLOW}[r]${RESET} rename  ${RED}[k]${RESET} kill  ${BLUE}[n]${RESET} new  ${DIM}[f]${RESET} refresh  ${DIM}[q]${RESET} quit"
+    printf " ${GREEN}[Enter]${RESET} open  ${BLUE}[n]${RESET} new  ${DIM}[f]${RESET} refresh  ${DIM}[q]${RESET} quit"
+}
+
+draw_detail_footer() {
+    local row=$(( TERM_ROWS - 1 ))
+
+    # Separator
+    cursor_to $(( row - 1 )) 1
+    clear_line
+    local separator=""
+    local max_w=$(( TERM_COLS - 2 ))
+    for (( c=0; c<max_w; c++ )); do separator+="─"; done
+    printf " ${DIM}${separator}${RESET}"
+
+    cursor_to "$row" 1
+    clear_line
+    printf " ${GREEN}[Enter/a]${RESET} attach  ${YELLOW}[r]${RESET} rename  ${RED}[k]${RESET} kill  ${DIM}[ESC/q]${RESET} back"
 }
 
 render_list() {
@@ -137,7 +153,77 @@ render_list() {
 }
 
 render_detail() {
-    render_list  # placeholder: will be replaced in behavioral commit
+    if [[ ${#SESSIONS[@]} -eq 0 ]]; then
+        VIEW_MODE="list"
+        render_list
+        return
+    fi
+
+    local session="${SESSIONS[$SELECTED]}"
+
+    # Header: session name + version
+    cursor_to 1 1
+    clear_line
+    printf "${BOLD}${CYAN} %s${RESET}${DIM}  v${VERSION}${RESET}" "$session"
+    cursor_to 2 1
+    clear_line
+    local separator=""
+    local max_w=$(( TERM_COLS - 2 ))
+    for (( c=0; c<max_w; c++ )); do separator+="─"; done
+    printf " ${DIM}${separator}${RESET}"
+
+    # Info line: session details + AI summary
+    cursor_to 3 1
+    clear_line
+    local info
+    info=$(get_session_info "$session")
+    local info_detail="${info#*: }"
+    printf " ${BOLD}Info:${RESET} %s" "$info_detail"
+
+    cursor_to 4 1
+    clear_line
+    local ai_text="${AI_SUMMARIES[$SELECTED]:-}"
+    if [[ -n "$ai_text" ]]; then
+        printf " ${BOLD}AI:${RESET}   ${CYAN}%s${RESET}" "$ai_text"
+    elif ai_enabled; then
+        printf " ${BOLD}AI:${RESET}   ${DIM}(loading...)${RESET}"
+    fi
+
+    # Separator
+    draw_separator 5
+
+    # Preview: larger area filling remaining space
+    cursor_to 6 1
+    clear_line
+    printf " ${BOLD}Preview:${RESET}"
+
+    local preview_content
+    preview_content=$(capture_pane "$session" "$CAPTURE_LINES")
+
+    local line_num=0
+    local max_preview_lines=$(( TERM_ROWS - 6 - 4 ))
+    if (( max_preview_lines < 3 )); then max_preview_lines=3; fi
+
+    while IFS= read -r line; do
+        line_num=$(( line_num + 1 ))
+        if (( line_num > max_preview_lines )); then break; fi
+
+        local row=$(( 6 + line_num ))
+        cursor_to "$row" 1
+        clear_line
+        local max_len=$(( TERM_COLS - 2 ))
+        if (( PREVIEW_MAX_COLS < max_len )); then max_len=$PREVIEW_MAX_COLS; fi
+        printf " ${GRAY}%s${RESET}" "${line:0:$max_len}"
+    done <<< "$preview_content"
+
+    # Clear remaining lines
+    local r
+    for (( r = 6 + line_num + 1; r <= TERM_ROWS - 3; r++ )); do
+        cursor_to "$r" 1
+        clear_line
+    done
+
+    draw_detail_footer
 }
 
 render() {

@@ -13,6 +13,7 @@ action_attach() {
     SAVED_TTY=$(stty -g 2>/dev/null || true)
     stty -echo -icanon min 1 time 0 2>/dev/null || true
     cursor_hide
+    VIEW_MODE="list"
     refresh_sessions
     start_ai_summaries
     render
@@ -54,6 +55,7 @@ action_rename() {
         tmux rename-session -t "$session" "$new_name" 2>/dev/null || true
         refresh_sessions
     fi
+    VIEW_MODE="list"
     render
 }
 
@@ -78,6 +80,7 @@ action_kill() {
         tmux kill-session -t "$session" 2>/dev/null || true
         refresh_sessions
     fi
+    VIEW_MODE="list"
     render
 }
 
