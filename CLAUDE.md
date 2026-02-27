@@ -65,9 +65,8 @@ constants.sh → utils.sh → sessions.sh → ai.sh → render.sh → actions.sh
 
 | 按鍵 | 功能 |
 |------|------|
-| Enter/a | attach 進入 session |
-| r | rename（預填 AI 建議名稱） |
-| k | kill（需確認） |
+| Up/Down | 上下選擇操作（attach/rename/kill/back） |
+| Enter | 執行選中的操作 |
 | ESC/q | 回到列表頁 |
 
 ## TUI 佈局
@@ -95,11 +94,12 @@ constants.sh → utils.sh → sessions.sh → ai.sh → render.sh → actions.sh
  Info: 2 windows (created Thu Jan 1 00:00:00 2025)
  AI:   正在開發登入功能...
  ─────────────────────────────
- Preview:
-   （更大的預覽區，佔滿剩餘空間）
-   ...
+ > attach
+   rename
+   kill
+   back
  ─────────────────────────────
- [Enter/a] attach  [r] rename  [k] kill  [ESC/q] back
+ [Up/Down] select  [Enter] confirm  [ESC] back
 ```
 
 ## 安裝

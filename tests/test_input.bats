@@ -276,7 +276,7 @@ load 'test_helper'
     [ "$output" = "list" ]
 }
 
-@test "a in detail mode calls action_attach" {
+@test "UP in detail mode decrements DETAIL_SELECTED" {
     run bash -c "
         source '${LIB_DIR}/constants.sh'
         source '${LIB_DIR}/utils.sh'
@@ -287,18 +287,18 @@ load 'test_helper'
         source '${LIB_DIR}/input.sh'
         SESSIONS=(alpha beta gamma)
         SELECTED=0
+        DETAIL_SELECTED=2
         VIEW_MODE='detail'
-        read_key() { echo 'a'; }
+        read_key() { echo 'UP'; }
         render() { :; }
-        action_attach() { echo 'ATTACHED'; }
         handle_detail_input
-        echo \"\$VIEW_MODE\"
+        echo \"\$DETAIL_SELECTED\"
     "
     [ "$status" -eq 0 ]
-    [[ "$output" == *"ATTACHED"* ]]
+    [ "$output" = "1" ]
 }
 
-@test "ENTER in detail mode calls action_attach" {
+@test "DOWN in detail mode increments DETAIL_SELECTED" {
     run bash -c "
         source '${LIB_DIR}/constants.sh'
         source '${LIB_DIR}/utils.sh'
@@ -309,18 +309,84 @@ load 'test_helper'
         source '${LIB_DIR}/input.sh'
         SESSIONS=(alpha beta gamma)
         SELECTED=0
+        DETAIL_SELECTED=1
+        VIEW_MODE='detail'
+        read_key() { echo 'DOWN'; }
+        render() { :; }
+        handle_detail_input
+        echo \"\$DETAIL_SELECTED\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "2" ]
+}
+
+@test "UP in detail mode does not go below 0" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        DETAIL_SELECTED=0
+        VIEW_MODE='detail'
+        read_key() { echo 'UP'; }
+        render() { :; }
+        handle_detail_input
+        echo \"\$DETAIL_SELECTED\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "0" ]
+}
+
+@test "DOWN in detail mode does not exceed last action index" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        DETAIL_SELECTED=3
+        VIEW_MODE='detail'
+        read_key() { echo 'DOWN'; }
+        render() { :; }
+        handle_detail_input
+        echo \"\$DETAIL_SELECTED\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "3" ]
+}
+
+@test "ENTER in detail mode with DETAIL_SELECTED=0 calls action_attach" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        DETAIL_SELECTED=0
         VIEW_MODE='detail'
         read_key() { echo 'ENTER'; }
         render() { :; }
         action_attach() { echo 'ATTACHED'; }
         handle_detail_input
-        echo \"\$VIEW_MODE\"
     "
     [ "$status" -eq 0 ]
     [[ "$output" == *"ATTACHED"* ]]
 }
 
-@test "r in detail mode calls action_rename" {
+@test "ENTER in detail mode with DETAIL_SELECTED=1 calls action_rename" {
     run bash -c "
         source '${LIB_DIR}/constants.sh'
         source '${LIB_DIR}/utils.sh'
@@ -331,18 +397,18 @@ load 'test_helper'
         source '${LIB_DIR}/input.sh'
         SESSIONS=(alpha beta gamma)
         SELECTED=0
+        DETAIL_SELECTED=1
         VIEW_MODE='detail'
-        read_key() { echo 'r'; }
+        read_key() { echo 'ENTER'; }
         render() { :; }
         action_rename() { echo 'RENAMED'; }
         handle_detail_input
-        echo \"\$VIEW_MODE\"
     "
     [ "$status" -eq 0 ]
     [[ "$output" == *"RENAMED"* ]]
 }
 
-@test "k in detail mode calls action_kill" {
+@test "ENTER in detail mode with DETAIL_SELECTED=2 calls action_kill" {
     run bash -c "
         source '${LIB_DIR}/constants.sh'
         source '${LIB_DIR}/utils.sh'
@@ -353,13 +419,35 @@ load 'test_helper'
         source '${LIB_DIR}/input.sh'
         SESSIONS=(alpha beta gamma)
         SELECTED=0
+        DETAIL_SELECTED=2
         VIEW_MODE='detail'
-        read_key() { echo 'k'; }
+        read_key() { echo 'ENTER'; }
         render() { :; }
         action_kill() { echo 'KILLED'; }
+        handle_detail_input
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"KILLED"* ]]
+}
+
+@test "ENTER in detail mode with DETAIL_SELECTED=3 sets VIEW_MODE to list" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        DETAIL_SELECTED=3
+        VIEW_MODE='detail'
+        read_key() { echo 'ENTER'; }
+        render() { :; }
         handle_detail_input
         echo \"\$VIEW_MODE\"
     "
     [ "$status" -eq 0 ]
-    [[ "$output" == *"KILLED"* ]]
+    [ "$output" = "list" ]
 }

@@ -139,7 +139,7 @@ draw_detail_footer() {
 
     cursor_to "$row" 1
     clear_line
-    printf " ${GREEN}[Enter/a]${RESET} attach  ${YELLOW}[r]${RESET} rename  ${RED}[k]${RESET} kill  ${DIM}[ESC/q]${RESET} back"
+    printf " ${DIM}[Up/Down]${RESET} select  ${GREEN}[Enter]${RESET} confirm  ${DIM}[ESC]${RESET} back"
 }
 
 render_list() {
@@ -192,33 +192,22 @@ render_detail() {
     # Separator
     draw_separator 5
 
-    # Preview: larger area filling remaining space
-    cursor_to 6 1
-    clear_line
-    printf " ${BOLD}Preview:${RESET}"
-
-    local preview_content
-    preview_content=$(capture_pane "$session" "$CAPTURE_LINES")
-
-    local line_num=0
-    local max_preview_lines=$(( TERM_ROWS - 6 - 4 ))
-    if (( max_preview_lines < 3 )); then max_preview_lines=3; fi
-
-    while IFS= read -r line; do
-        line_num=$(( line_num + 1 ))
-        if (( line_num > max_preview_lines )); then break; fi
-
-        local row=$(( 6 + line_num ))
+    # Action menu
+    local i
+    for (( i=0; i<${#DETAIL_ACTIONS[@]}; i++ )); do
+        local row=$(( 6 + i ))
         cursor_to "$row" 1
         clear_line
-        local max_len=$(( TERM_COLS - 2 ))
-        if (( PREVIEW_MAX_COLS < max_len )); then max_len=$PREVIEW_MAX_COLS; fi
-        printf " ${GRAY}%s${RESET}" "${line:0:$max_len}"
-    done <<< "$preview_content"
+        if (( i == DETAIL_SELECTED )); then
+            printf " ${REVERSE}${BOLD} > %-20s${RESET}" "${DETAIL_ACTIONS[$i]}"
+        else
+            printf "   %-20s" "${DETAIL_ACTIONS[$i]}"
+        fi
+    done
 
     # Clear remaining lines
     local r
-    for (( r = 6 + line_num + 1; r <= TERM_ROWS - 3; r++ )); do
+    for (( r = 6 + ${#DETAIL_ACTIONS[@]}; r <= TERM_ROWS - 3; r++ )); do
         cursor_to "$r" 1
         clear_line
     done

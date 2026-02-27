@@ -35,12 +35,15 @@ action_rename() {
     stty echo icanon 2>/dev/null || true
 
     local new_name=""
+    local rl_bold=$'\001'"${BOLD}"$'\002'
+    local rl_dim=$'\001'"${DIM}"$'\002'
+    local rl_reset=$'\001'"${RESET}"$'\002'
     if [[ -n "$suggested" ]]; then
-        printf " ${BOLD}Rename '${session}' to${RESET} [${DIM}${suggested}${RESET}] (ESC/empty=cancel): "
-        IFS= read -r -e -i "$suggested" new_name || true
+        local prompt=" ${rl_bold}Rename '${session}' to${rl_reset} [${rl_dim}${suggested}${rl_reset}] (ESC/empty=cancel): "
+        IFS= read -r -e -p "$prompt" -i "$suggested" new_name || true
     else
-        printf " ${BOLD}Rename '${session}' to${RESET} (ESC/empty=cancel): "
-        IFS= read -r -e new_name || true
+        local prompt=" ${rl_bold}Rename '${session}' to${rl_reset} (ESC/empty=cancel): "
+        IFS= read -r -e -p "$prompt" new_name || true
     fi
 
     # Re-setup raw terminal

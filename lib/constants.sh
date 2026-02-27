@@ -12,26 +12,28 @@ AI_TEMP_DIR="/tmp/tmux-session-ai-$$"
 readonly AI_MODEL="claude-haiku-4-5-20251001"
 
 # ─── Colors and styles ───────────────────────────────────────────────
-readonly RESET='\033[0m'
-readonly BOLD='\033[1m'
-readonly DIM='\033[2m'
-readonly REVERSE='\033[7m'
-readonly RED='\033[31m'
-readonly GREEN='\033[32m'
-readonly YELLOW='\033[33m'
-readonly BLUE='\033[34m'
-readonly CYAN='\033[36m'
-readonly WHITE='\033[37m'
-readonly BG_BLUE='\033[44m'
-readonly GRAY='\033[90m'
+readonly RESET=$'\033[0m'
+readonly BOLD=$'\033[1m'
+readonly DIM=$'\033[2m'
+readonly REVERSE=$'\033[7m'
+readonly RED=$'\033[31m'
+readonly GREEN=$'\033[32m'
+readonly YELLOW=$'\033[33m'
+readonly BLUE=$'\033[34m'
+readonly CYAN=$'\033[36m'
+readonly WHITE=$'\033[37m'
+readonly BG_BLUE=$'\033[44m'
+readonly GRAY=$'\033[90m'
 
 # ─── State ────────────────────────────────────────────────────────────
 declare -a SESSIONS=()
 declare -a AI_SUMMARIES=()
 declare -a AI_NAMES=()
 SELECTED=0
+DETAIL_SELECTED=0
 RUNNING=true
 VIEW_MODE="list"    # "list" or "detail"
 TERM_ROWS=0
 TERM_COLS=0
 LIST_END=0
+readonly DETAIL_ACTIONS=("attach" "rename" "kill" "back")

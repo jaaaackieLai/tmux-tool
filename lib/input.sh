@@ -26,10 +26,25 @@ handle_detail_input() {
     key=$(read_key)
 
     case "$key" in
-        ENTER|a) action_attach ;;
-        r)       action_rename ;;
-        k)       action_kill ;;
-        ESC|q)   VIEW_MODE="list" ;;
+        UP)
+            if (( DETAIL_SELECTED > 0 )); then
+                DETAIL_SELECTED=$(( DETAIL_SELECTED - 1 ))
+            fi
+            ;;
+        DOWN)
+            if (( DETAIL_SELECTED < ${#DETAIL_ACTIONS[@]} - 1 )); then
+                DETAIL_SELECTED=$(( DETAIL_SELECTED + 1 ))
+            fi
+            ;;
+        ENTER)
+            case "${DETAIL_ACTIONS[$DETAIL_SELECTED]}" in
+                attach) action_attach ;;
+                rename) action_rename ;;
+                kill)   action_kill ;;
+                back)   VIEW_MODE="list" ;;
+            esac
+            ;;
+        ESC|q) VIEW_MODE="list" ;;
         TIMEOUT) ;;
     esac
 }
@@ -51,6 +66,7 @@ handle_input() {
             ;;
         ENTER)
             if [[ ${#SESSIONS[@]} -gt 0 ]]; then
+                DETAIL_SELECTED=0
                 VIEW_MODE="detail"
             fi
             ;;
