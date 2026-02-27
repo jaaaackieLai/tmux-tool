@@ -4,7 +4,9 @@ Interactive tmux session manager with AI-powered summaries. PTT-style TUI built 
 
 Designed for developers running multiple Claude Code sessions (or any tmux workflow) who want a quick overview of what's happening in each session.
 
-## Screenshot
+## Screenshots
+
+### List View
 
 ```
  tmux-session manager  v1.0.0
@@ -18,28 +20,52 @@ Designed for developers running multiple Claude Code sessions (or any tmux workf
    PASS src/auth.test.ts
    Tests: 12 passed, 12 total
  ───────────────────────────────────────
- [Enter] attach  [r] rename  [k] kill  [n] new  [f] refresh  [q] quit
+ [Enter] open  [n] new  [f] refresh  [q] quit
+```
+
+### Detail View
+
+```
+ my-project                    v1.0.0
+ ───────────────────────────────────────
+ Info: 2 windows (created Thu Jan 1 00:00:00 2025)
+ AI:   正在重構登入模組...
+ ───────────────────────────────────────
+ > attach
+   rename
+   kill
+   back
+ ───────────────────────────────────────
+ [Up/Down] select  [Enter] confirm  [ESC] back
 ```
 
 ## Features
 
-- Browse and preview all tmux sessions in a single TUI
+- Two-tier TUI -- browse sessions in list view, manage them in detail view
 - AI summaries -- each session gets a one-line description of what's happening (via Anthropic Haiku)
-- AI-suggested rename -- press `r` and get a meaningful name pre-filled
+- AI-suggested rename -- get a meaningful name pre-filled when renaming
 - Live preview of the selected session's terminal output
 - Zero external dependencies beyond tmux (curl/jq optional for AI)
 
 ## Keybindings
 
+### List View
+
 | Key | Action |
 |-----|--------|
 | Up/Down | Navigate sessions |
-| Enter | Attach to selected session |
-| r | Rename session (AI suggestion pre-filled) |
-| k | Kill session (with confirmation) |
+| Enter | Open session detail view |
 | n | Create new session |
 | f | Refresh list and re-run AI summaries |
 | q | Quit |
+
+### Detail View
+
+| Key | Action |
+|-----|--------|
+| Up/Down | Navigate menu (attach/rename/kill/back) |
+| Enter | Execute selected action |
+| ESC/q | Back to list view |
 
 ## Install
 
@@ -48,7 +74,7 @@ git clone <repo-url> && cd tmux-tool
 ./install.sh
 ```
 
-This copies `tmux-session` to `/usr/local/bin`. To install elsewhere:
+This copies `tmux-session` and `lib/` to `/usr/local/bin`. To install elsewhere:
 
 ```bash
 INSTALL_DIR=~/.local/bin ./install.sh
