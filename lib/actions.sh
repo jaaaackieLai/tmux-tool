@@ -105,6 +105,22 @@ action_kill() {
     render
 }
 
+create_session_with_context() {
+    local name="$1"
+    local workdir="${2:-}"
+    local init_cmd="${3:-}"
+
+    if [[ -n "$workdir" ]]; then
+        tmux new-session -d -s "$name" -c "$workdir" 2>/dev/null || tmux new-session -d -s "$name" 2>/dev/null || return 1
+    else
+        tmux new-session -d -s "$name" 2>/dev/null || return 1
+    fi
+
+    if [[ -n "$init_cmd" ]]; then
+        tmux send-keys -t "$name" "$init_cmd" C-m 2>/dev/null || true
+    fi
+}
+
 action_new() {
     cursor_show
     local prompt_row=$(( TERM_ROWS ))
@@ -118,6 +134,41 @@ action_new() {
     local name=""
     IFS= read -r -e name || true
 
+    local workdir="${TMUX_SESSION_NEW_DEFAULT_DIR:-}"
+    local init_cmd="${TMUX_SESSION_NEW_DEFAULT_CMD:-}"
+    local ask_dir="${TMUX_SESSION_NEW_ASK_DIR:-0}"
+    local ask_cmd="${TMUX_SESSION_NEW_ASK_CMD:-0}"
+
+    if [[ -n "$name" ]]; then
+        if [[ "$ask_dir" == "1" ]]; then
+            if [[ -n "$workdir" ]]; then
+                printf " ${BOLD}Workdir${RESET} ${DIM}(empty=%s): ${RESET}" "$workdir"
+            else
+                printf " ${BOLD}Workdir${RESET} ${DIM}(empty=skip): ${RESET}"
+            fi
+            local input_dir=""
+            IFS= read -r -e input_dir || true
+            if [[ -n "$input_dir" ]]; then
+                workdir="$input_dir"
+            fi
+        fi
+
+        if [[ "$ask_cmd" == "1" ]]; then
+            if [[ -n "$init_cmd" ]]; then
+                printf " ${BOLD}Init command${RESET} ${DIM}(empty=%s, '-'=none): ${RESET}" "$init_cmd"
+            else
+                printf " ${BOLD}Init command${RESET} ${DIM}(empty=none): ${RESET}"
+            fi
+            local input_cmd=""
+            IFS= read -r -e input_cmd || true
+            if [[ "$input_cmd" == "-" ]]; then
+                init_cmd=""
+            elif [[ -n "$input_cmd" ]]; then
+                init_cmd="$input_cmd"
+            fi
+        fi
+    fi
+
     stty -echo -icanon min 1 time 0 2>/dev/null || true
     cursor_hide
 
@@ -126,9 +177,10 @@ action_new() {
     clear_line
 
     if [[ -n "$name" ]]; then
-        tmux new-session -d -s "$name" 2>/dev/null || true
-        refresh_sessions
-        start_ai_summaries
+        if create_session_with_context "$name" "$workdir" "$init_cmd"; then
+            refresh_sessions
+            start_ai_summaries
+        fi
     fi
     render
 }

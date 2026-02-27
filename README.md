@@ -67,6 +67,36 @@ Designed for developers running multiple Claude Code sessions (or any tmux workf
 | Enter | Execute selected action |
 | ESC/q | Back to list view |
 
+## New Session Defaults
+
+You can configure what happens when pressing `n` (new session):
+
+- Default working directory (`tmux new-session -c ...`)
+- Default init command (sent to the new pane automatically)
+- Whether to prompt for directory/command every time
+
+Config file path (default):
+
+```bash
+~/.config/tmux-session/config.sh
+```
+
+Example:
+
+```bash
+# ~/.config/tmux-session/config.sh
+TMUX_SESSION_NEW_DEFAULT_DIR="$HOME/work/my-project"
+TMUX_SESSION_NEW_DEFAULT_CMD="source .venv/bin/activate"
+TMUX_SESSION_NEW_ASK_DIR=1
+TMUX_SESSION_NEW_ASK_CMD=1
+```
+
+You can also override the config path:
+
+```bash
+TMUX_SESSION_CONFIG_FILE=/path/to/config.sh tmux-session
+```
+
 ## Install
 
 ```bash

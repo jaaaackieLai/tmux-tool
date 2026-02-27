@@ -15,6 +15,7 @@ else
 fi
 source "${LIB_DIR}/constants.sh"
 source "${LIB_DIR}/utils.sh"
+source "${LIB_DIR}/config.sh"
 source "${LIB_DIR}/sessions.sh"
 source "${LIB_DIR}/ai.sh"
 source "${LIB_DIR}/render.sh"
@@ -37,6 +38,7 @@ cleanup() {
 
 main() {
     check_deps
+    load_user_config
 
     # Handle --version / --help
     case "${1:-}" in
@@ -61,6 +63,11 @@ main() {
             echo ""
             echo "Environment:"
             echo "  ANTHROPIC_API_KEY  Set to enable AI summaries (uses Haiku)"
+            echo "  TMUX_SESSION_CONFIG_FILE   Override config file path"
+            echo "  TMUX_SESSION_NEW_DEFAULT_DIR  Default workdir for new sessions"
+            echo "  TMUX_SESSION_NEW_DEFAULT_CMD  Default init command for new sessions"
+            echo "  TMUX_SESSION_NEW_ASK_DIR   Ask for workdir each time (1/0)"
+            echo "  TMUX_SESSION_NEW_ASK_CMD   Ask for init command each time (1/0)"
             exit 0
             ;;
     esac
