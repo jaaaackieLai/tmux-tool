@@ -30,8 +30,10 @@ refresh_sessions() {
 
 get_session_info() {
     local session="$1"
-    tmux ls -F '#{session_name}: #{session_windows} windows (created #{session_created_string})#{?session_attached, (attached),}' 2>/dev/null \
-        | grep "^${session}:" | head -1 || echo "${session}: unknown"
+    local result
+    result=$(tmux ls -F '#{session_name}: #{session_windows} windows (created #{session_created_string})#{?session_attached, (attached),}' 2>/dev/null \
+        | awk -F': ' -v s="$session" '$1 == s' | head -1)
+    echo "${result:-${session}: unknown}"
 }
 
 capture_pane() {
