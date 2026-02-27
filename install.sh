@@ -5,6 +5,23 @@ set -euo pipefail
 
 readonly INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly GITHUB_REPO="jaaaackieLai/tmux-tool"
+readonly GITHUB_RAW_BASE="https://raw.githubusercontent.com/${GITHUB_REPO}/main"
+readonly LIB_SUBDIR="tmux-session-lib"
+readonly LIB_FILES=(
+    actions.sh
+    ai.sh
+    config.sh
+    constants.sh
+    input.sh
+    render.sh
+    sessions.sh
+    update.sh
+    utils.sh
+)
+
+SOURCE_DIR=""
+TMP_SOURCE_DIR=""
 
 echo "tmux-session installer"
 echo "======================"
@@ -20,6 +37,19 @@ check_dep() {
     fi
 }
 
+download_from_github() {
+    local target_dir="$1"
+    mkdir -p "${target_dir}/lib"
+
+    curl -fsSL "${GITHUB_RAW_BASE}/tmux-session" -o "${target_dir}/tmux-session"
+    chmod +x "${target_dir}/tmux-session"
+
+    local f=""
+    for f in "${LIB_FILES[@]}"; do
+        curl -fsSL "${GITHUB_RAW_BASE}/lib/${f}" -o "${target_dir}/lib/${f}"
+    done
+}
+
 echo "Checking dependencies..."
 MISSING=0
 check_dep tmux "Required. Install: sudo apt install tmux / brew install tmux" || MISSING=1
@@ -32,24 +62,37 @@ if [[ $MISSING -eq 1 ]]; then
     exit 1
 fi
 
+# Determine source (local clone or remote raw)
+if [[ -f "${SCRIPT_DIR}/tmux-session" && -d "${SCRIPT_DIR}/lib" ]]; then
+    SOURCE_DIR="${SCRIPT_DIR}"
+else
+    TMP_SOURCE_DIR="$(mktemp -d)"
+    echo "Running in remote install mode (downloading from GitHub)..."
+    download_from_github "$TMP_SOURCE_DIR"
+    SOURCE_DIR="${TMP_SOURCE_DIR}"
+fi
+
 # Install
-readonly LIB_SUBDIR="tmux-session-lib"
 echo "Installing tmux-session to ${INSTALL_DIR}..."
 mkdir -p "$INSTALL_DIR" 2>/dev/null || true
 if [[ -w "$INSTALL_DIR" ]]; then
-    cp "${SCRIPT_DIR}/tmux-session" "${INSTALL_DIR}/tmux-session"
+    cp "${SOURCE_DIR}/tmux-session" "${INSTALL_DIR}/tmux-session"
     chmod +x "${INSTALL_DIR}/tmux-session"
     rm -rf "${INSTALL_DIR}/${LIB_SUBDIR}"
     mkdir -p "${INSTALL_DIR}/${LIB_SUBDIR}"
-    cp "${SCRIPT_DIR}/lib/"*.sh "${INSTALL_DIR}/${LIB_SUBDIR}/"
+    cp "${SOURCE_DIR}/lib/"*.sh "${INSTALL_DIR}/${LIB_SUBDIR}/"
 else
     echo "Need sudo to write to ${INSTALL_DIR}"
     sudo mkdir -p "$INSTALL_DIR"
-    sudo cp "${SCRIPT_DIR}/tmux-session" "${INSTALL_DIR}/tmux-session"
+    sudo cp "${SOURCE_DIR}/tmux-session" "${INSTALL_DIR}/tmux-session"
     sudo chmod +x "${INSTALL_DIR}/tmux-session"
     sudo rm -rf "${INSTALL_DIR}/${LIB_SUBDIR}"
     sudo mkdir -p "${INSTALL_DIR}/${LIB_SUBDIR}"
-    sudo cp "${SCRIPT_DIR}/lib/"*.sh "${INSTALL_DIR}/${LIB_SUBDIR}/"
+    sudo cp "${SOURCE_DIR}/lib/"*.sh "${INSTALL_DIR}/${LIB_SUBDIR}/"
+fi
+
+if [[ -n "$TMP_SOURCE_DIR" ]]; then
+    rm -rf "$TMP_SOURCE_DIR"
 fi
 
 echo ""

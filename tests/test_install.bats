@@ -70,3 +70,86 @@ teardown() {
     [ -f "${new_dir}/tmux-session" ]
     [ -d "${new_dir}/tmux-session-lib" ]
 }
+
+@test "remote install mode works when install.sh is executed without local lib directory" {
+    run bash -c "
+        set -euo pipefail
+        work=\$(mktemp -d)
+        trap 'rm -rf \"\$work\"' EXIT
+
+        mkdir -p \"\$work/bin\" \"\$work/remote\"
+        cp '${REPO_ROOT}/install.sh' \"\$work/remote/install.sh\"
+
+        cat > \"\$work/bin/tmux\" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
+
+        cat > \"\$work/bin/curl\" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+out=''
+url=''
+while [[ \$# -gt 0 ]]; do
+    case \"\$1\" in
+        -o) out=\"\$2\"; shift 2 ;;
+        -f|-s|-S|-L|-fsSL) shift ;;
+        *) url=\"\$1\"; shift ;;
+    esac
+done
+[[ -n \"\$out\" ]] || exit 0
+rel=\"\${url#https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/}\"
+cp \"\$REPO_ROOT/\$rel\" \"\$out\"
+EOF
+
+        chmod +x \"\$work/bin/tmux\" \"\$work/bin/curl\"
+
+        PATH=\"\$work/bin:\$PATH\" REPO_ROOT='${REPO_ROOT}' INSTALL_DIR='${TEST_INSTALL_DIR}' bash \"\$work/remote/install.sh\"
+
+        [ -f '${TEST_INSTALL_DIR}/tmux-session' ]
+        [ -f '${TEST_INSTALL_DIR}/tmux-session-lib/update.sh' ]
+    "
+    [ "$status" -eq 0 ]
+}
+
+@test "remote install downloads all lib .sh files" {
+    run bash -c "
+        set -euo pipefail
+        work=\$(mktemp -d)
+        trap 'rm -rf \"\$work\"' EXIT
+
+        mkdir -p \"\$work/bin\" \"\$work/remote\"
+        cp '${REPO_ROOT}/install.sh' \"\$work/remote/install.sh\"
+
+        cat > \"\$work/bin/tmux\" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
+
+        cat > \"\$work/bin/curl\" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+out=''
+url=''
+while [[ \$# -gt 0 ]]; do
+    case \"\$1\" in
+        -o) out=\"\$2\"; shift 2 ;;
+        -f|-s|-S|-L|-fsSL) shift ;;
+        *) url=\"\$1\"; shift ;;
+    esac
+done
+[[ -n \"\$out\" ]] || exit 0
+rel=\"\${url#https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/}\"
+cp \"\$REPO_ROOT/\$rel\" \"\$out\"
+EOF
+
+        chmod +x \"\$work/bin/tmux\" \"\$work/bin/curl\"
+
+        PATH=\"\$work/bin:\$PATH\" REPO_ROOT='${REPO_ROOT}' INSTALL_DIR='${TEST_INSTALL_DIR}' bash \"\$work/remote/install.sh\"
+
+        expected=\$(ls '${REPO_ROOT}/lib/'*.sh | wc -l)
+        actual=\$(ls '${TEST_INSTALL_DIR}/tmux-session-lib/'*.sh | wc -l)
+        [ \"\$expected\" -eq \"\$actual\" ]
+    "
+    [ "$status" -eq 0 ]
+}

@@ -11,7 +11,9 @@ tmux-tool/
   CLAUDE.md             # 本檔案
   lib/
     constants.sh        # 常數、顏色、全域狀態宣告（~38 行，含 VIEW_MODE）
+    update.sh           # 自我更新：檢查遠端版本 + 執行 installer
     utils.sh            # cursor/terminal/die/check_deps（~25 行）
+    config.sh           # 使用者設定載入（新 session 預設路徑/指令）
     sessions.sh         # tmux 操作：refresh/get_info/capture（~45 行）
     ai.sh               # AI 摘要：enabled/start/load/cleanup（~80 行）
     render.sh           # TUI 繪製：render_list/render_detail/draw_*（~200 行）
@@ -29,7 +31,7 @@ tmux-tool/
 ### Source 載入順序（依賴由低到高）
 
 ```
-constants.sh → utils.sh → sessions.sh → ai.sh → render.sh → actions.sh → input.sh
+constants.sh → update.sh → utils.sh → config.sh → sessions.sh → ai.sh → render.sh → actions.sh → input.sh
 ```
 
 主入口統一 source 全部，lib 檔案之間不互相 source。
@@ -110,6 +112,13 @@ constants.sh → utils.sh → sessions.sh → ai.sh → render.sh → actions.sh
 ```bash
 ./install.sh              # 安裝到 /usr/local/bin
 INSTALL_DIR=~/.local/bin ./install.sh  # 自訂安裝路徑
+curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install.sh | bash
+```
+
+更新：
+
+```bash
+tmux-session --update
 ```
 
 ## 自動啟動（加到 .bashrc / .zshrc）

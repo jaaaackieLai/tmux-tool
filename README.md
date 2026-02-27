@@ -113,6 +113,12 @@ This copies `tmux-session` and `lib/` to `/usr/local/bin`. To install elsewhere:
 INSTALL_DIR=~/.local/bin ./install.sh
 ```
 
+Or install directly via curl:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install.sh | bash
+```
+
 ### Dependencies
 
 | Dependency | Required | Purpose |
@@ -153,6 +159,7 @@ fi
 ```
 tmux-session --help     Show help
 tmux-session --version  Show version
+tmux-session --update   Self-update from GitHub
 ```
 
 ## License
