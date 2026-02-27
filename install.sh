@@ -4,7 +4,8 @@ set -euo pipefail
 # install.sh - Install tmux-session manager
 
 readonly INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
+readonly SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 readonly GITHUB_REPO="jaaaackieLai/tmux-tool"
 readonly GITHUB_RAW_BASE="https://raw.githubusercontent.com/${GITHUB_REPO}/main"
 readonly LIB_SUBDIR="tmux-session-lib"

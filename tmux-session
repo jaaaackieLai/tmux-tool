@@ -4,11 +4,12 @@ set -euo pipefail
 # tmux-session: Interactive tmux session manager with AI summaries
 # Pure bash, zero external dependencies (except tmux, curl, jq for AI features)
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -d "${SCRIPT_DIR}/lib" ]]; then
-    LIB_DIR="${SCRIPT_DIR}/lib"
-elif [[ -d "${SCRIPT_DIR}/tmux-session-lib" ]]; then
+SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+if [[ -d "${SCRIPT_DIR}/tmux-session-lib" ]]; then
     LIB_DIR="${SCRIPT_DIR}/tmux-session-lib"
+elif [[ -d "${SCRIPT_DIR}/lib" ]]; then
+    LIB_DIR="${SCRIPT_DIR}/lib"
 else
     echo "Error: Cannot find lib directory" >&2
     exit 1

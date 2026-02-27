@@ -153,3 +153,53 @@ EOF
     "
     [ "$status" -eq 0 ]
 }
+
+@test "installed tmux-session prefers tmux-session-lib over unrelated lib directory" {
+    run bash -c "
+        set -euo pipefail
+        mkdir -p '${TEST_INSTALL_DIR}/lib'
+        echo '# other tool files' > '${TEST_INSTALL_DIR}/lib/placeholder.sh'
+
+        INSTALL_DIR='${TEST_INSTALL_DIR}' bash '${REPO_ROOT}/install.sh' >/dev/null
+        '${TEST_INSTALL_DIR}/tmux-session' --help >/dev/null
+    "
+    [ "$status" -eq 0 ]
+}
+
+@test "install works via pipe without BASH_SOURCE unbound errors" {
+    run bash -c "
+        set -euo pipefail
+        work=\$(mktemp -d)
+        trap 'rm -rf \"\$work\"' EXIT
+
+        mkdir -p \"\$work/bin\"
+
+        cat > \"\$work/bin/tmux\" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
+
+        cat > \"\$work/bin/curl\" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+out=''
+url=''
+while [[ \$# -gt 0 ]]; do
+    case \"\$1\" in
+        -o) out=\"\$2\"; shift 2 ;;
+        -f|-s|-S|-L|-fsSL) shift ;;
+        *) url=\"\$1\"; shift ;;
+    esac
+done
+[[ -n \"\$out\" ]] || exit 0
+rel=\"\${url#https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/}\"
+cp \"\$REPO_ROOT/\$rel\" \"\$out\"
+EOF
+
+        chmod +x \"\$work/bin/tmux\" \"\$work/bin/curl\"
+
+        PATH=\"\$work/bin:\$PATH\" REPO_ROOT='${REPO_ROOT}' INSTALL_DIR='${TEST_INSTALL_DIR}' bash < '${REPO_ROOT}/install.sh'
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" != *"BASH_SOURCE[0]: unbound variable"* ]]
+}
