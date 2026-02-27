@@ -102,6 +102,8 @@ TMUX_SESSION_CONFIG_FILE=/path/to/config.sh tmux-session
 
 ## Install
 
+### From local clone
+
 ```bash
 git clone <repo-url> && cd tmux-tool
 ./install.sh
@@ -113,10 +115,30 @@ This copies `tmux-session` and `lib/` to `/usr/local/bin`. To install elsewhere:
 INSTALL_DIR=~/.local/bin ./install.sh
 ```
 
-Or install directly via curl:
+### Remote install (curl)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install.sh | bash
+```
+
+Install to `~/.local/bin`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install.sh | INSTALL_DIR="$HOME/.local/bin" bash
+```
+
+After install, refresh shell command cache and verify:
+
+```bash
+hash -r
+command -v tmux-session
+tmux-session -h
+```
+
+If `tmux-session` is not found, ensure `~/.local/bin` is in `PATH`:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
 ### Dependencies
