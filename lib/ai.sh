@@ -5,9 +5,17 @@ ai_enabled() {
     [[ -n "${ANTHROPIC_API_KEY:-}" ]] && command -v curl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1
 }
 
+ai_has_error() {
+    local session="$1"
+    [[ -f "${AI_TEMP_DIR}/${session}.error" ]]
+}
+
 start_ai_summaries() {
     ai_enabled || return 0
 
+    # Kill old background AI jobs and clear stale results
+    jobs -p 2>/dev/null | xargs kill 2>/dev/null || true
+    rm -rf "$AI_TEMP_DIR"
     mkdir -p "$AI_TEMP_DIR"
 
     local i
@@ -48,7 +56,11 @@ ${content}"
                     name=$(echo "$text" | grep '^NAME:' | sed 's/^NAME: //' | head -1)
                     echo "$summary" > "${AI_TEMP_DIR}/${session}.summary"
                     echo "$name" > "${AI_TEMP_DIR}/${session}.name"
+                else
+                    touch "${AI_TEMP_DIR}/${session}.error"
                 fi
+            else
+                touch "${AI_TEMP_DIR}/${session}.error"
             fi
         ) &
     done
