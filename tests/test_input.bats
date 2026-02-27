@@ -451,3 +451,71 @@ load 'test_helper'
     [ "$status" -eq 0 ]
     [ "$output" = "list" ]
 }
+
+# ─── Detail view shortcut key tests (a/r/k) ──────────────────────────
+
+@test "a key in detail mode calls action_attach" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        DETAIL_SELECTED=0
+        VIEW_MODE='detail'
+        read_key() { echo 'a'; }
+        render() { :; }
+        action_attach() { echo 'ATTACHED'; }
+        handle_detail_input
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ATTACHED"* ]]
+}
+
+@test "r key in detail mode calls action_rename" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        DETAIL_SELECTED=0
+        VIEW_MODE='detail'
+        read_key() { echo 'r'; }
+        render() { :; }
+        action_rename() { echo 'RENAMED'; }
+        handle_detail_input
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"RENAMED"* ]]
+}
+
+@test "k key in detail mode calls action_kill" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        DETAIL_SELECTED=0
+        VIEW_MODE='detail'
+        read_key() { echo 'k'; }
+        render() { :; }
+        action_kill() { echo 'KILLED'; }
+        handle_detail_input
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"KILLED"* ]]
+}

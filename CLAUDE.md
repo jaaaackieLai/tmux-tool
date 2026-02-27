@@ -67,6 +67,9 @@ constants.sh → utils.sh → sessions.sh → ai.sh → render.sh → actions.sh
 |------|------|
 | Up/Down | 上下選擇操作（attach/rename/kill/back） |
 | Enter | 執行選中的操作 |
+| a | 快捷 attach |
+| r | 快捷 rename |
+| k | 快捷 kill |
 | ESC/q | 回到列表頁 |
 
 ## TUI 佈局
@@ -99,7 +102,7 @@ constants.sh → utils.sh → sessions.sh → ai.sh → render.sh → actions.sh
    kill
    back
  ─────────────────────────────
- [Up/Down] select  [Enter] confirm  [ESC] back
+ [Up/Down] select  [Enter] confirm  [a]ttach [r]ename [k]ill  [ESC] back
 ```
 
 ## 安裝

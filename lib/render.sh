@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 # lib/render.sh - TUI rendering functions
 
+# Truncate text with ellipsis when exceeding max_len
+truncate_text() {
+    local text="$1" max_len="$2"
+    if (( ${#text} > max_len )); then
+        printf '%s' "${text:0:$(( max_len - 1 ))}"$'\xe2\x80\xa6'
+    else
+        printf '%s' "$text"
+    fi
+}
+
 draw_header() {
     cursor_to 1 1
     clear_line
@@ -15,7 +25,10 @@ draw_header() {
 
 draw_session_list() {
     local start_row=3
-    local max_items=$(( (TERM_ROWS - 10) / 2 ))  # Reserve space for preview + footer
+    # Fixed overhead: header(2) + separator(1) + preview_header(1) + separator(1) + footer(2) = 7
+    local fixed_overhead=7
+    local min_preview=3
+    local max_items=$(( TERM_ROWS - fixed_overhead - min_preview ))
     if (( max_items < 3 )); then max_items=3; fi
     if (( max_items > ${#SESSIONS[@]} )); then max_items=${#SESSIONS[@]}; fi
 
@@ -25,27 +38,43 @@ draw_session_list() {
         offset=$(( SELECTED - max_items + 1 ))
     fi
 
+    # Dynamic column widths for truncation
+    local name_max=$(( TERM_COLS / 3 ))
+    if (( name_max < 15 )); then name_max=15; fi
+    local ai_max=$(( TERM_COLS - name_max - 10 ))
+    if (( ai_max < 10 )); then ai_max=10; fi
+
+    local total=${#SESSIONS[@]}
     local i
     for (( i=0; i<max_items; i++ )); do
         local idx=$(( offset + i ))
-        if (( idx >= ${#SESSIONS[@]} )); then break; fi
+        if (( idx >= total )); then break; fi
 
         local row=$(( start_row + i ))
         cursor_to "$row" 1
         clear_line
 
         local session="${SESSIONS[$idx]}"
+        local display_name
+        display_name=$(truncate_text "$session" "$name_max")
+
         local ai_text=""
         if [[ -n "${AI_SUMMARIES[$idx]:-}" ]]; then
-            ai_text="${CYAN} [${AI_SUMMARIES[$idx]}]${RESET}"
+            local truncated_ai
+            truncated_ai=$(truncate_text "${AI_SUMMARIES[$idx]}" "$ai_max")
+            ai_text="${CYAN} [${truncated_ai}]${RESET}"
         elif ai_enabled; then
-            ai_text="${DIM} [...]${RESET}"
+            if ai_has_error "$session"; then
+                ai_text="${RED}${DIM} [AI failed]${RESET}"
+            else
+                ai_text="${DIM} [AI loading...]${RESET}"
+            fi
         fi
 
         if (( idx == SELECTED )); then
-            printf " ${REVERSE}${BOLD} > %-20s${RESET}${ai_text}" "$session"
+            printf " ${REVERSE}${BOLD} > %-20s${RESET}${ai_text}" "$display_name"
         else
-            printf "   %-20s${ai_text}" "$session"
+            printf "   %-20s${ai_text}" "$display_name"
         fi
     done
 
@@ -55,6 +84,10 @@ draw_session_list() {
     clear_line
 
     LIST_END=$(( start_row + max_items ))
+
+    # Store offset for footer scroll indicator
+    _LIST_OFFSET=$offset
+    _LIST_MAX_ITEMS=$max_items
 }
 
 draw_separator() {
@@ -126,6 +159,19 @@ draw_footer() {
     cursor_to "$row" 1
     clear_line
     printf " ${GREEN}[Enter]${RESET} open  ${BLUE}[n]${RESET} new  ${DIM}[f]${RESET} refresh  ${DIM}[q]${RESET} quit"
+
+    # Scroll position indicator on right side
+    if [[ ${#SESSIONS[@]} -gt 0 ]]; then
+        local total=${#SESSIONS[@]}
+        local pos_text="$(( SELECTED + 1 ))/${total}"
+        local arrows=""
+        if (( ${_LIST_OFFSET:-0} > 0 )); then arrows+="^"; fi
+        if (( ${_LIST_OFFSET:-0} + ${_LIST_MAX_ITEMS:-0} < total )); then arrows+="v"; fi
+        if [[ -n "$arrows" ]]; then pos_text="${arrows} ${pos_text}"; fi
+        local col=$(( TERM_COLS - ${#pos_text} - 1 ))
+        cursor_to "$row" "$col"
+        printf "${DIM}%s${RESET}" "$pos_text"
+    fi
 }
 
 draw_detail_footer() {
@@ -141,7 +187,7 @@ draw_detail_footer() {
 
     cursor_to "$row" 1
     clear_line
-    printf " ${DIM}[Up/Down]${RESET} select  ${GREEN}[Enter]${RESET} confirm  ${DIM}[ESC]${RESET} back"
+    printf " ${DIM}[Up/Down]${RESET} select  ${GREEN}[Enter]${RESET} confirm  ${GREEN}[a]${RESET}ttach ${BLUE}[r]${RESET}ename ${RED}[k]${RESET}ill  ${DIM}[ESC]${RESET} back"
 }
 
 render_list() {
@@ -164,9 +210,13 @@ render_detail() {
     local session="${SESSIONS[$SELECTED]}"
 
     # Header: session name + version
+    local version_text="v${VERSION}"
+    local name_max_detail=$(( TERM_COLS - ${#version_text} - 4 ))
+    local display_session
+    display_session=$(truncate_text "$session" "$name_max_detail")
     cursor_to 1 1
     clear_line
-    printf "${BOLD}${CYAN} %s${RESET}${DIM}  v${VERSION}${RESET}" "$session"
+    printf "${BOLD}${CYAN} %s${RESET}${DIM}  ${version_text}${RESET}" "$display_session"
     cursor_to 2 1
     clear_line
     local separator=""
@@ -188,7 +238,11 @@ render_detail() {
     if [[ -n "$ai_text" ]]; then
         printf " ${BOLD}AI:${RESET}   ${CYAN}%s${RESET}" "$ai_text"
     elif ai_enabled; then
-        printf " ${BOLD}AI:${RESET}   ${DIM}(loading...)${RESET}"
+        if ai_has_error "$session"; then
+            printf " ${BOLD}AI:${RESET}   ${RED}${DIM}(failed)${RESET}"
+        else
+            printf " ${BOLD}AI:${RESET}   ${DIM}(loading...)${RESET}"
+        fi
     fi
 
     # Separator
@@ -200,10 +254,15 @@ render_detail() {
         local row=$(( 6 + i ))
         cursor_to "$row" 1
         clear_line
+        local action="${DETAIL_ACTIONS[$i]}"
+        local color=""
+        case "$action" in
+            kill) color="$RED" ;;
+        esac
         if (( i == DETAIL_SELECTED )); then
-            printf " ${REVERSE}${BOLD} > %-20s${RESET}" "${DETAIL_ACTIONS[$i]}"
+            printf " ${REVERSE}${BOLD}${color} > %-20s${RESET}" "$action"
         else
-            printf "   %-20s" "${DETAIL_ACTIONS[$i]}"
+            printf "   ${color}%-20s${RESET}" "$action"
         fi
     done
 

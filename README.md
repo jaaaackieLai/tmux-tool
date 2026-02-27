@@ -36,7 +36,7 @@ Designed for developers running multiple Claude Code sessions (or any tmux workf
    kill
    back
  ───────────────────────────────────────
- [Up/Down] select  [Enter] confirm  [ESC] back
+ [Up/Down] select  [Enter] confirm  [a]ttach [r]ename [k]ill  [ESC] back
 ```
 
 ## Features
@@ -65,6 +65,9 @@ Designed for developers running multiple Claude Code sessions (or any tmux workf
 |-----|--------|
 | Up/Down | Navigate menu (attach/rename/kill/back) |
 | Enter | Execute selected action |
+| a | Attach to session |
+| r | Rename session (with AI suggestion) |
+| k | Kill session |
 | ESC/q | Back to list view |
 
 ## New Session Defaults

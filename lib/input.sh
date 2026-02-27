@@ -44,6 +44,9 @@ handle_detail_input() {
                 back)   VIEW_MODE="list" ;;
             esac
             ;;
+        a) action_attach ;;
+        r) action_rename ;;
+        k) action_kill ;;
         ESC|q) VIEW_MODE="list" ;;
         TIMEOUT) ;;
     esac

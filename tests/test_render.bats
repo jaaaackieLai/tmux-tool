@@ -31,6 +31,122 @@ spy_capture_pane() {
     }
 }
 
+# ─── truncate_text tests ─────────────────────────────────────────────
+
+@test "truncate_text returns text unchanged when shorter than max_len" {
+    run truncate_text "hello" 10
+    [ "$output" = "hello" ]
+}
+
+@test "truncate_text truncates and adds ellipsis when text exceeds max_len" {
+    run truncate_text "hello world this is long" 10
+    [ "$output" = "hello wor…" ]
+}
+
+@test "truncate_text returns text unchanged when exactly max_len" {
+    run truncate_text "12345" 5
+    [ "$output" = "12345" ]
+}
+
+@test "truncate_text handles empty string" {
+    run truncate_text "" 10
+    [ "$output" = "" ]
+}
+
+# ─── draw_session_list max_items tests ───────────────────────────────
+
+@test "draw_session_list uses improved max_items formula for more visible sessions" {
+    SESSIONS=("s1" "s2" "s3" "s4" "s5" "s6" "s7" "s8" "s9" "s10")
+    AI_SUMMARIES=()
+    SELECTED=0
+    TERM_COLS=80
+    TERM_ROWS=25
+    ai_enabled() { return 1; }
+
+    draw_session_list >/dev/null 2>&1
+    # fixed_overhead=7, min_preview=3 -> max_items = 25 - 7 - 3 = 15, capped to 10
+    # LIST_END = 3 + 10 = 13
+    [ "$LIST_END" -eq 13 ]
+}
+
+@test "draw_session_list max_items minimum is 3 on very short terminal" {
+    SESSIONS=("s1" "s2" "s3" "s4" "s5" "s6" "s7" "s8" "s9" "s10")
+    AI_SUMMARIES=()
+    SELECTED=0
+    TERM_COLS=80
+    TERM_ROWS=10
+    ai_enabled() { return 1; }
+
+    draw_session_list >/dev/null 2>&1
+    # fixed_overhead=7, min_preview=3 -> max_items = 10 - 7 - 3 = 0, clamped to 3
+    [ "$LIST_END" -eq 6 ]
+}
+
+# ─── draw_footer scroll indicator tests ──────────────────────────────
+
+@test "draw_footer shows position indicator" {
+    SESSIONS=("s1" "s2" "s3")
+    SELECTED=1
+    TERM_ROWS=30
+    TERM_COLS=80
+
+    output=$(draw_footer 2>&1)
+    [[ "$output" == *"2/3"* ]]
+}
+
+# ─── render_detail kill color test ───────────────────────────────────
+
+@test "render_detail applies red color to kill action" {
+    SESSIONS=("test-session")
+    AI_SUMMARIES=("")
+    SELECTED=0
+    DETAIL_SELECTED=2  # kill is index 2
+    VIEW_MODE="detail"
+    TERM_ROWS=25
+    TERM_COLS=80
+    get_session_info() { echo "test: 1 window"; }
+    ai_enabled() { return 1; }
+
+    output=$(render_detail 2>&1)
+    # Output should contain RED escape for kill
+    [[ "$output" == *$'\033[31m'* ]]
+}
+
+# ─── draw_detail_footer shortcut keys test ───────────────────────────
+
+@test "draw_detail_footer shows attach rename kill shortcuts" {
+    TERM_ROWS=25
+    TERM_COLS=80
+
+    output=$(draw_detail_footer 2>&1)
+    [[ "$output" == *"[a]"* ]]
+    [[ "$output" == *"[r]"* ]]
+    [[ "$output" == *"[k]"* ]]
+}
+
+# ─── AI status display tests ────────────────────────────────────────
+
+@test "draw_session_list shows AI failed when error file exists" {
+    local tmpdir
+    tmpdir=$(mktemp -d)
+    SESSIONS=("test-session")
+    AI_SUMMARIES=("")
+    SELECTED=0
+    TERM_COLS=80
+    TERM_ROWS=25
+    AI_TEMP_DIR="$tmpdir"
+    touch "${tmpdir}/test-session.error"
+    ai_enabled() { return 0; }
+    ai_has_error() { [[ -f "${AI_TEMP_DIR}/${1}.error" ]]; }
+
+    output=$(draw_session_list 2>&1)
+    [[ "$output" == *"AI failed"* ]]
+
+    rm -rf "$tmpdir"
+}
+
+# ─── draw_preview tests ─────────────────────────────────────────────
+
 @test "draw_preview passes dynamic line count to capture_pane based on terminal height" {
     SESSIONS=("test-session")
     SELECTED=0
