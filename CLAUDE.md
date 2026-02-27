@@ -7,7 +7,7 @@ PTT 風格的 tmux session 管理工具，專為同時跑多個 Claude Code sess
 ```
 tmux-tool/
   tmux-session          # 主入口 ~74 行（bootstrap: source libs + cleanup + main）
-  install.sh            # 安裝腳本（一起安裝 lib/ 目錄）
+  install.sh            # 安裝腳本（安裝到 tmux-session-lib/ 目錄）
   CLAUDE.md             # 本檔案
   lib/
     constants.sh        # 常數、顏色、全域狀態宣告（~38 行，含 VIEW_MODE）

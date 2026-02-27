@@ -33,16 +33,23 @@ if [[ $MISSING -eq 1 ]]; then
 fi
 
 # Install
+readonly LIB_SUBDIR="tmux-session-lib"
 echo "Installing tmux-session to ${INSTALL_DIR}..."
+mkdir -p "$INSTALL_DIR" 2>/dev/null || true
 if [[ -w "$INSTALL_DIR" ]]; then
     cp "${SCRIPT_DIR}/tmux-session" "${INSTALL_DIR}/tmux-session"
     chmod +x "${INSTALL_DIR}/tmux-session"
-    cp -r "${SCRIPT_DIR}/lib" "${INSTALL_DIR}/lib"
+    rm -rf "${INSTALL_DIR}/${LIB_SUBDIR}"
+    mkdir -p "${INSTALL_DIR}/${LIB_SUBDIR}"
+    cp "${SCRIPT_DIR}/lib/"*.sh "${INSTALL_DIR}/${LIB_SUBDIR}/"
 else
     echo "Need sudo to write to ${INSTALL_DIR}"
+    sudo mkdir -p "$INSTALL_DIR"
     sudo cp "${SCRIPT_DIR}/tmux-session" "${INSTALL_DIR}/tmux-session"
     sudo chmod +x "${INSTALL_DIR}/tmux-session"
-    sudo cp -r "${SCRIPT_DIR}/lib" "${INSTALL_DIR}/lib"
+    sudo rm -rf "${INSTALL_DIR}/${LIB_SUBDIR}"
+    sudo mkdir -p "${INSTALL_DIR}/${LIB_SUBDIR}"
+    sudo cp "${SCRIPT_DIR}/lib/"*.sh "${INSTALL_DIR}/${LIB_SUBDIR}/"
 fi
 
 echo ""
