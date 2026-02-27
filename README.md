@@ -1,4 +1,4 @@
-# tmux-session
+# tmux-tool
 
 Interactive tmux session manager with AI-powered summaries. PTT-style TUI built in pure bash.
 
