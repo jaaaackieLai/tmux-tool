@@ -82,12 +82,14 @@ draw_preview() {
     clear_line
     printf " ${BOLD}Preview${RESET} ${DIM}(${session}):${RESET}"
 
-    local preview_content
-    preview_content=$(capture_pane "$session" "$PREVIEW_LINES")
-
-    local line_num=0
     local max_preview_lines=$(( TERM_ROWS - preview_start - 4 ))
     if (( max_preview_lines < 3 )); then max_preview_lines=3; fi
+    if (( max_preview_lines > PREVIEW_LINES )); then max_preview_lines=$PREVIEW_LINES; fi
+
+    local preview_content
+    preview_content=$(capture_pane "$session" "$max_preview_lines")
+
+    local line_num=0
 
     while IFS= read -r line; do
         line_num=$(( line_num + 1 ))
