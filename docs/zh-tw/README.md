@@ -1,5 +1,10 @@
 # tmux-tool
 
+[![Version](https://img.shields.io/badge/version-1.4.0-green)](https://github.com/jaaaackielai/tmux-tool/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macOS-lightgrey)]()
+[![Pure Bash](https://img.shields.io/badge/pure-bash-orange)]()
+
 > 一個快速、鍵盤導向、可選 AI 摘要的 tmux 工作階段管理工具。
 
 `tmux-session` 讓你在多個 tmux session 之間切換與管理時，不再丟失上下文。
