@@ -64,7 +64,7 @@ spy_capture_pane() {
     ai_enabled() { return 1; }
 
     draw_session_list >/dev/null 2>&1
-    # fixed_overhead=7, min_preview=3 -> max_items = 25 - 7 - 3 = 15, capped to 10
+    # fixed_overhead=8, min_preview=3 -> max_items = 25 - 8 - 3 = 14, capped to 10
     # LIST_END = 3 + 10 = 13
     [ "$LIST_END" -eq 13 ]
 }
@@ -78,7 +78,7 @@ spy_capture_pane() {
     ai_enabled() { return 1; }
 
     draw_session_list >/dev/null 2>&1
-    # fixed_overhead=7, min_preview=3 -> max_items = 10 - 7 - 3 = 0, clamped to 3
+    # fixed_overhead=8, min_preview=3 -> max_items = 10 - 8 - 3 = -1, clamped to 3
     [ "$LIST_END" -eq 6 ]
 }
 
@@ -160,8 +160,8 @@ spy_capture_pane() {
     SELECTED=0
     TERM_COLS=80
     TERM_ROWS=22
-    # preview_start=10, available = 22 - 10 - 4 = 8, which is < PREVIEW_LINES(15)
-    local expected_lines=8
+    # preview_start=10, available = 22 - 10 - 5 = 7, which is < PREVIEW_LINES(15)
+    local expected_lines=7
     spy_capture_pane
 
     draw_preview 10
@@ -188,9 +188,71 @@ spy_capture_pane() {
     TERM_ROWS=12
     spy_capture_pane
 
-    draw_preview 10
+    # preview_start=5, available = 12 - 5 - 5 = 2, clamped to 3
+    draw_preview 5
 
     [ "$(cat "$SPY_FILE")" -eq 3 ]
+}
+
+@test "draw_preview clears residual lines when terminal shrinks below preview threshold" {
+    SESSIONS=("test-session")
+    SELECTED=0
+    TERM_COLS=80
+    TERM_ROWS=13
+    _RENDER_BUF=""
+    # preview_start=8, available = 13 - 8 - 5 = 0 -> no preview content
+    # But row 9 (TERM_ROWS-4) should still be cleared to remove stale content
+    capture_pane() { echo "stale"; }
+
+    draw_preview 8
+    output=$(buf_flush 2>&1)
+
+    # The preview header row should be rendered (cursor move to row 8)
+    [[ "$output" == *$'\033[8;1H'* ]]
+    # Row 9 = TERM_ROWS-4 should be cleared (cursor move to row 9)
+    [[ "$output" == *$'\033[9;1H'* ]]
+}
+
+# ─── buf_* output buffering tests ───────────────────────────────────
+
+# ─── tmux tips tests ───────────────────────────────────────────────
+
+@test "draw_footer shows tmux tips line" {
+    SESSIONS=("s1" "s2")
+    SELECTED=0
+    TERM_ROWS=25
+    TERM_COLS=80
+    _RENDER_BUF=""
+    _LIST_OFFSET=0
+    _LIST_MAX_ITEMS=2
+
+    draw_footer
+    output=$(buf_flush 2>&1)
+    [[ "$output" == *"C-b d"* ]]
+}
+
+@test "draw_detail_footer shows tmux tips line" {
+    TERM_ROWS=25
+    TERM_COLS=80
+    _RENDER_BUF=""
+
+    draw_detail_footer
+    output=$(buf_flush 2>&1)
+    [[ "$output" == *"C-b d"* ]]
+}
+
+@test "draw_footer hides tmux tips on very small terminal" {
+    SESSIONS=("s1")
+    SELECTED=0
+    TERM_ROWS=8
+    TERM_COLS=80
+    _RENDER_BUF=""
+    _LIST_OFFSET=0
+    _LIST_MAX_ITEMS=1
+
+    draw_footer
+    output=$(buf_flush 2>&1)
+    [[ "$output" != *"C-b d"* ]]
 }
 
 # ─── buf_* output buffering tests ───────────────────────────────────

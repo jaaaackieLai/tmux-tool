@@ -25,8 +25,8 @@ draw_header() {
 
 draw_session_list() {
     local start_row=3
-    # Fixed overhead: header(2) + separator(1) + preview_header(1) + separator(1) + footer(2) = 7
-    local fixed_overhead=7
+    # Fixed overhead: header(2) + separator(1) + preview_header(1) + separator(1) + footer(3) = 8
+    local fixed_overhead=8
     local min_preview=3
     local max_items=$(( TERM_ROWS - fixed_overhead - min_preview ))
     if (( max_items < 3 )); then max_items=3; fi
@@ -107,6 +107,11 @@ draw_preview() {
         buf_cursor_to "$preview_start" 1
         buf_clear_line
         buf_printf " ${DIM}No tmux sessions found. Press [n] to create one.${RESET}"
+        local r
+        for (( r = preview_start + 1; r <= TERM_ROWS - 4; r++ )); do
+            buf_cursor_to "$r" 1
+            buf_clear_line
+        done
         return
     fi
 
@@ -115,47 +120,54 @@ draw_preview() {
     buf_clear_line
     buf_printf " ${BOLD}Preview${RESET} ${DIM}(${session}):${RESET}"
 
-    local max_preview_lines=$(( TERM_ROWS - preview_start - 4 ))
-    if (( max_preview_lines < 3 )); then max_preview_lines=3; fi
-    if (( max_preview_lines > PREVIEW_LINES )); then max_preview_lines=$PREVIEW_LINES; fi
-
-    local preview_content
-    preview_content=$(capture_pane "$session" "$max_preview_lines")
-
+    local max_preview_lines=$(( TERM_ROWS - preview_start - 5 ))
     local line_num=0
 
-    while IFS= read -r line; do
-        line_num=$(( line_num + 1 ))
-        if (( line_num > max_preview_lines )); then break; fi
+    if (( max_preview_lines >= 1 )); then
+        if (( max_preview_lines < 3 )); then max_preview_lines=3; fi
+        if (( max_preview_lines > PREVIEW_LINES )); then max_preview_lines=$PREVIEW_LINES; fi
 
-        local row=$(( preview_start + line_num ))
-        buf_cursor_to "$row" 1
-        buf_clear_line
-        # Truncate line to the smaller of terminal width and PREVIEW_MAX_COLS
-        local max_len=$(( TERM_COLS - 2 ))
-        if (( PREVIEW_MAX_COLS < max_len )); then max_len=$PREVIEW_MAX_COLS; fi
-        buf_printf " ${GRAY}%s${RESET}" "${line:0:$max_len}"
-    done <<< "$preview_content"
+        local preview_content
+        preview_content=$(capture_pane "$session" "$max_preview_lines")
 
-    # Clear remaining preview lines
+        while IFS= read -r line; do
+            line_num=$(( line_num + 1 ))
+            if (( line_num > max_preview_lines )); then break; fi
+
+            local row=$(( preview_start + line_num ))
+            buf_cursor_to "$row" 1
+            buf_clear_line
+            # Truncate line to the smaller of terminal width and PREVIEW_MAX_COLS
+            local max_len=$(( TERM_COLS - 2 ))
+            if (( PREVIEW_MAX_COLS < max_len )); then max_len=$PREVIEW_MAX_COLS; fi
+            buf_printf " ${GRAY}%s${RESET}" "${line:0:$max_len}"
+        done <<< "$preview_content"
+    fi
+
+    # Clear remaining preview lines (also handles residual content after terminal shrink)
     local r
-    for (( r = preview_start + line_num + 1; r <= TERM_ROWS - 3; r++ )); do
+    for (( r = preview_start + line_num + 1; r <= TERM_ROWS - 4; r++ )); do
         buf_cursor_to "$r" 1
         buf_clear_line
     done
 }
 
 draw_footer() {
+    # Separator at R-3
+    draw_separator $(( TERM_ROWS - 3 ))
+
+    # Tmux tips at R-2 (hidden on very small terminals)
+    if (( TERM_ROWS >= 10 )); then
+        buf_cursor_to $(( TERM_ROWS - 2 )) 1
+        buf_clear_line
+        local tips_text="tmux: C-b d detach  C-b c new  C-b n/p next/prev  C-b % hsplit  C-b \" vsplit"
+        local truncated_tips
+        truncated_tips=$(truncate_text "$tips_text" $(( TERM_COLS - 2 )))
+        buf_printf " ${DIM}%s${RESET}" "$truncated_tips"
+    fi
+
+    # App keys at R-1
     local row=$(( TERM_ROWS - 1 ))
-
-    # Separator
-    buf_cursor_to $(( row - 1 )) 1
-    buf_clear_line
-    local separator=""
-    local max_w=$(( TERM_COLS - 2 ))
-    for (( c=0; c<max_w; c++ )); do separator+="─"; done
-    buf_printf " ${DIM}${separator}${RESET}"
-
     buf_cursor_to "$row" 1
     buf_clear_line
     buf_printf " ${GREEN}[Enter]${RESET} open  ${BLUE}[n]${RESET} new  ${DIM}[f]${RESET} refresh  ${DIM}[q]${RESET} quit"
@@ -175,16 +187,21 @@ draw_footer() {
 }
 
 draw_detail_footer() {
+    # Separator at R-3
+    draw_separator $(( TERM_ROWS - 3 ))
+
+    # Tmux tips at R-2 (hidden on very small terminals)
+    if (( TERM_ROWS >= 10 )); then
+        buf_cursor_to $(( TERM_ROWS - 2 )) 1
+        buf_clear_line
+        local tips_text="tmux: C-b d detach  C-b c new  C-b n/p next/prev  C-b % hsplit  C-b \" vsplit"
+        local truncated_tips
+        truncated_tips=$(truncate_text "$tips_text" $(( TERM_COLS - 2 )))
+        buf_printf " ${DIM}%s${RESET}" "$truncated_tips"
+    fi
+
+    # Detail keys at R-1
     local row=$(( TERM_ROWS - 1 ))
-
-    # Separator
-    buf_cursor_to $(( row - 1 )) 1
-    buf_clear_line
-    local separator=""
-    local max_w=$(( TERM_COLS - 2 ))
-    for (( c=0; c<max_w; c++ )); do separator+="─"; done
-    buf_printf " ${DIM}${separator}${RESET}"
-
     buf_cursor_to "$row" 1
     buf_clear_line
     buf_printf " ${DIM}[Up/Down]${RESET} select  ${GREEN}[Enter]${RESET} confirm  ${GREEN}[a]${RESET}ttach ${BLUE}[r]${RESET}ename ${RED}[k]${RESET}ill  ${DIM}[ESC]${RESET} back"
@@ -268,7 +285,7 @@ render_detail() {
 
     # Clear remaining lines
     local r
-    for (( r = 6 + ${#DETAIL_ACTIONS[@]}; r <= TERM_ROWS - 3; r++ )); do
+    for (( r = 6 + ${#DETAIL_ACTIONS[@]}; r <= TERM_ROWS - 4; r++ )); do
         buf_cursor_to "$r" 1
         buf_clear_line
     done
