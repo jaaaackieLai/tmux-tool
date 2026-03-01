@@ -29,11 +29,13 @@ handle_detail_input() {
         UP)
             if (( DETAIL_SELECTED > 0 )); then
                 DETAIL_SELECTED=$(( DETAIL_SELECTED - 1 ))
+                DIRTY=1
             fi
             ;;
         DOWN)
             if (( DETAIL_SELECTED < ${#DETAIL_ACTIONS[@]} - 1 )); then
                 DETAIL_SELECTED=$(( DETAIL_SELECTED + 1 ))
+                DIRTY=1
             fi
             ;;
         ENTER)
@@ -41,14 +43,18 @@ handle_detail_input() {
                 attach) action_attach ;;
                 rename) action_rename ;;
                 kill)   action_kill ;;
-                back)   VIEW_MODE="list" ;;
+                back)   VIEW_MODE="list"; DIRTY=1 ;;
             esac
             ;;
         a) action_attach ;;
         r) action_rename ;;
         k) action_kill ;;
-        ESC|q) VIEW_MODE="list" ;;
-        TIMEOUT) ;;
+        ESC|q) VIEW_MODE="list"; DIRTY=1 ;;
+        TIMEOUT)
+            if load_ai_results; then
+                DIRTY=1
+            fi
+            ;;
     esac
 }
 
@@ -60,22 +66,26 @@ handle_input() {
         UP)
             if (( SELECTED > 0 )); then
                 SELECTED=$(( SELECTED - 1 ))
+                DIRTY=1
             fi
             ;;
         DOWN)
             if (( ${#SESSIONS[@]} > 0 && SELECTED < ${#SESSIONS[@]} - 1 )); then
                 SELECTED=$(( SELECTED + 1 ))
+                DIRTY=1
             fi
             ;;
         ENTER)
             if [[ ${#SESSIONS[@]} -gt 0 ]]; then
                 DETAIL_SELECTED=0
                 VIEW_MODE="detail"
+                DIRTY=1
             fi
             ;;
         f)
             refresh_sessions
             start_ai_summaries
+            DIRTY=1
             ;;
         n)
             action_new
@@ -84,7 +94,9 @@ handle_input() {
             RUNNING=false
             ;;
         TIMEOUT)
-            # Just re-render to pick up AI results
+            if load_ai_results; then
+                DIRTY=1
+            fi
             ;;
     esac
 }

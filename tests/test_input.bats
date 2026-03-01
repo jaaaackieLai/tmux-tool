@@ -519,3 +519,95 @@ load 'test_helper'
     [ "$status" -eq 0 ]
     [[ "$output" == *"KILLED"* ]]
 }
+
+# ─── DIRTY flag tests ───────────────────────────────────────────────
+
+@test "DIRTY stays 0 on TIMEOUT with no AI changes" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta)
+        AI_SUMMARIES=('sum1' 'sum2')
+        AI_TEMP_DIR=\$(mktemp -d)
+        echo 'sum1' > \"\${AI_TEMP_DIR}/alpha.summary\"
+        echo 'sum2' > \"\${AI_TEMP_DIR}/beta.summary\"
+        DIRTY=0
+        read_key() { echo 'TIMEOUT'; }
+        render() { :; }
+        handle_input
+        echo \"\$DIRTY\"
+        rm -rf \"\$AI_TEMP_DIR\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "0" ]
+}
+
+@test "DIRTY set to 1 on UP key press in list mode" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=1
+        DIRTY=0
+        read_key() { echo 'UP'; }
+        render() { :; }
+        handle_input
+        echo \"\$DIRTY\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "1" ]
+}
+
+@test "DIRTY set to 1 on DOWN key press in detail mode" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        DETAIL_SELECTED=0
+        VIEW_MODE='detail'
+        DIRTY=0
+        read_key() { echo 'DOWN'; }
+        render() { :; }
+        handle_detail_input
+        echo \"\$DIRTY\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "1" ]
+}
+
+@test "DIRTY stays 0 on TIMEOUT with no AI dir" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha)
+        AI_TEMP_DIR='/nonexistent/path'
+        DIRTY=0
+        read_key() { echo 'TIMEOUT'; }
+        render() { :; }
+        handle_input
+        echo \"\$DIRTY\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "0" ]
+}

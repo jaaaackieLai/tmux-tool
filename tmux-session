@@ -82,6 +82,7 @@ main() {
     # Save terminal state and setup raw mode
     SAVED_TTY=$(stty -g 2>/dev/null || true)
     trap cleanup EXIT INT TERM
+    trap 'DIRTY=1' WINCH
     stty -echo -icanon min 1 time 0 2>/dev/null || true
 
     cursor_hide
@@ -97,7 +98,10 @@ main() {
         else
             handle_input
         fi
-        render
+        if (( DIRTY )); then
+            render
+            DIRTY=0
+        fi
     done
 }
 

@@ -157,11 +157,69 @@ load 'test_helper'
         SESSIONS=(alpha beta)
         AI_SUMMARIES=('keep1' 'keep2')
         AI_TEMP_DIR='/nonexistent/path/$$'
-        load_ai_results
+        load_ai_results || true
         echo \"\${AI_SUMMARIES[0]}\"
         echo \"\${AI_SUMMARIES[1]}\"
     "
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "keep1" ]
     [ "${lines[1]}" = "keep2" ]
+}
+
+# ─── load_ai_results return value tests ──────────────────────────────
+
+@test "load_ai_results returns 0 (true) when summaries changed" {
+    local tmpdir="${BATS_TMPDIR}/ai-ret-$$"
+    mkdir -p "$tmpdir"
+    echo "new summary" > "${tmpdir}/alpha.summary"
+
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        SESSIONS=(alpha)
+        AI_SUMMARIES=('')
+        AI_NAMES=('')
+        AI_TEMP_DIR='${tmpdir}'
+        load_ai_results
+    "
+    [ "$status" -eq 0 ]
+
+    rm -rf "$tmpdir"
+}
+
+@test "load_ai_results returns 1 (false) when summaries unchanged" {
+    local tmpdir="${BATS_TMPDIR}/ai-ret-$$"
+    mkdir -p "$tmpdir"
+    echo "same summary" > "${tmpdir}/alpha.summary"
+
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        SESSIONS=(alpha)
+        AI_SUMMARIES=('same summary')
+        AI_NAMES=('')
+        AI_TEMP_DIR='${tmpdir}'
+        load_ai_results
+    "
+    [ "$status" -eq 1 ]
+
+    rm -rf "$tmpdir"
+}
+
+@test "load_ai_results returns 1 (false) when temp dir missing" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        SESSIONS=(alpha)
+        AI_SUMMARIES=('old')
+        AI_TEMP_DIR='/nonexistent/path'
+        load_ai_results
+    "
+    [ "$status" -eq 1 ]
 }

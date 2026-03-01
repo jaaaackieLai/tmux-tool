@@ -76,7 +76,11 @@ ${content}"
 }
 
 load_ai_results() {
-    [[ -d "$AI_TEMP_DIR" ]] || return 0
+    [[ -d "$AI_TEMP_DIR" ]] || return 1
+
+    # Snapshot current summaries for change detection
+    local -a old_summaries=("${AI_SUMMARIES[@]+"${AI_SUMMARIES[@]}"}")
+    local changed=1  # 1 = no change (false)
 
     local i
     for i in "${!SESSIONS[@]}"; do
@@ -88,6 +92,16 @@ load_ai_results() {
             AI_NAMES[$i]=$(cat "${AI_TEMP_DIR}/${session}.name" 2>/dev/null || true)
         fi
     done
+
+    # Detect changes
+    for i in "${!SESSIONS[@]}"; do
+        if [[ "${AI_SUMMARIES[$i]:-}" != "${old_summaries[$i]:-}" ]]; then
+            changed=0  # 0 = changed (true)
+            break
+        fi
+    done
+
+    return $changed
 }
 
 cleanup_ai() {

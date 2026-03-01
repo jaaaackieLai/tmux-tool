@@ -12,7 +12,7 @@ setup() {
     source "${LIB_DIR}/ai.sh"
     source "${LIB_DIR}/render.sh"
 
-    # Stub cursor/clear to suppress ANSI output
+    # Stub non-buffered cursor/clear to suppress ANSI output
     cursor_to() { :; }
     clear_line() { :; }
 
@@ -89,8 +89,10 @@ spy_capture_pane() {
     SELECTED=1
     TERM_ROWS=30
     TERM_COLS=80
+    _RENDER_BUF=""
 
-    output=$(draw_footer 2>&1)
+    draw_footer
+    output=$(buf_flush 2>&1)
     [[ "$output" == *"2/3"* ]]
 }
 
@@ -104,10 +106,12 @@ spy_capture_pane() {
     VIEW_MODE="detail"
     TERM_ROWS=25
     TERM_COLS=80
+    _RENDER_BUF=""
     get_session_info() { echo "test: 1 window"; }
     ai_enabled() { return 1; }
 
-    output=$(render_detail 2>&1)
+    render_detail
+    output=$(buf_flush 2>&1)
     # Output should contain RED escape for kill
     [[ "$output" == *$'\033[31m'* ]]
 }
@@ -117,8 +121,10 @@ spy_capture_pane() {
 @test "draw_detail_footer shows attach rename kill shortcuts" {
     TERM_ROWS=25
     TERM_COLS=80
+    _RENDER_BUF=""
 
-    output=$(draw_detail_footer 2>&1)
+    draw_detail_footer
+    output=$(buf_flush 2>&1)
     [[ "$output" == *"[a]"* ]]
     [[ "$output" == *"[r]"* ]]
     [[ "$output" == *"[k]"* ]]
@@ -135,11 +141,13 @@ spy_capture_pane() {
     TERM_COLS=80
     TERM_ROWS=25
     AI_TEMP_DIR="$tmpdir"
+    _RENDER_BUF=""
     touch "${tmpdir}/test-session.error"
     ai_enabled() { return 0; }
     ai_has_error() { [[ -f "${AI_TEMP_DIR}/${1}.error" ]]; }
 
-    output=$(draw_session_list 2>&1)
+    draw_session_list
+    output=$(buf_flush 2>&1)
     [[ "$output" == *"AI failed"* ]]
 
     rm -rf "$tmpdir"
@@ -183,4 +191,44 @@ spy_capture_pane() {
     draw_preview 10
 
     [ "$(cat "$SPY_FILE")" -eq 3 ]
+}
+
+# ─── buf_* output buffering tests ───────────────────────────────────
+
+@test "buf_print appends text to _RENDER_BUF" {
+    _RENDER_BUF=""
+    buf_print "hello"
+    buf_print " world"
+    [ "$_RENDER_BUF" = "hello world" ]
+}
+
+@test "buf_printf formats text into _RENDER_BUF" {
+    _RENDER_BUF=""
+    buf_printf "num=%d" 42
+    [ "$_RENDER_BUF" = "num=42" ]
+}
+
+@test "buf_flush outputs buffer and clears it" {
+    run bash -c "
+        source '${LIB_DIR}/utils.sh'
+        _RENDER_BUF='test output'
+        buf_flush
+        printf '\n'
+        echo \"AFTER:\${_RENDER_BUF}:END\"
+    "
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "test output" ]
+    [ "${lines[1]}" = "AFTER::END" ]
+}
+
+@test "buf_cursor_to appends ANSI cursor sequence to buffer" {
+    _RENDER_BUF=""
+    buf_cursor_to 5 10
+    [ "$_RENDER_BUF" = $'\033[5;10H' ]
+}
+
+@test "buf_clear_line appends ANSI clear sequence to buffer" {
+    _RENDER_BUF=""
+    buf_clear_line
+    [ "$_RENDER_BUF" = $'\033[2K' ]
 }

@@ -16,7 +16,7 @@ action_attach() {
     VIEW_MODE="list"
     refresh_sessions
     start_ai_summaries
-    render
+    DIRTY=1
 }
 
 action_rename() {
@@ -75,7 +75,7 @@ action_rename() {
         refresh_sessions
     fi
     VIEW_MODE="list"
-    render
+    DIRTY=1
 }
 
 action_kill() {
@@ -100,7 +100,7 @@ action_kill() {
         refresh_sessions
     fi
     VIEW_MODE="list"
-    render
+    DIRTY=1
 }
 
 create_session_with_context() {
@@ -173,5 +173,5 @@ action_new() {
             start_ai_summaries
         fi
     fi
-    render
+    DIRTY=1
 }

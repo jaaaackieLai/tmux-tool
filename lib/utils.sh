@@ -21,3 +21,11 @@ get_term_size() {
     TERM_ROWS=$(tput lines 2>/dev/null || echo 24)
     TERM_COLS=$(tput cols 2>/dev/null || echo 80)
 }
+
+# ─── Output buffering ────────────────────────────────────────────────
+_RENDER_BUF=""
+buf_print()      { _RENDER_BUF+="$*"; }
+buf_printf()     { _RENDER_BUF+="$(printf "$@")"; }
+buf_flush()      { printf '%s' "$_RENDER_BUF"; _RENDER_BUF=""; }
+buf_cursor_to()  { _RENDER_BUF+=$'\033['"${1};${2}H"; }
+buf_clear_line() { _RENDER_BUF+=$'\033[2K'; }

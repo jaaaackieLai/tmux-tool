@@ -38,6 +38,7 @@ declare -a AI_SUMMARIES=()
 declare -a AI_NAMES=()
 SELECTED=0
 DETAIL_SELECTED=0
+DIRTY=1
 RUNNING=true
 VIEW_MODE="list"    # "list" or "detail"
 TERM_ROWS=0
