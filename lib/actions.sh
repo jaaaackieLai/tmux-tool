@@ -170,7 +170,15 @@ action_new() {
     if [[ -n "$name" ]]; then
         if create_session_with_context "$name" "$workdir" "$init_cmd"; then
             refresh_sessions
-            start_ai_summaries
+            # Find the new session and attach directly
+            for i in "${!SESSIONS[@]}"; do
+                if [[ "${SESSIONS[$i]}" == "$name" ]]; then
+                    SELECTED=$i
+                    break
+                fi
+            done
+            action_attach
+            return
         fi
     fi
     DIRTY=1

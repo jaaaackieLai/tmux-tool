@@ -187,6 +187,56 @@ load 'test_helper'
     [[ "$output" == *"SEND:send-keys -t proj pnpm dev C-m"* ]]
 }
 
+@test "action_new attaches to session after creation" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+
+        TERM_ROWS=20
+        SAVED_TTY=''
+        TMUX_SESSION_NEW_DEFAULT_DIR=''
+        TMUX_SESSION_NEW_DEFAULT_CMD=''
+        TMUX_SESSION_NEW_ASK_DIR=0
+        TMUX_SESSION_NEW_ASK_CMD=0
+
+        cursor_show() { :; }
+        cursor_hide() { :; }
+        cursor_to() { :; }
+        clear_line() { :; }
+        clear_screen() { :; }
+        start_ai_summaries() { :; }
+        render() { :; }
+
+        _created=0
+        SESSIONS=()
+        refresh_sessions() {
+            if [[ \$_created -eq 1 ]]; then
+                SESSIONS=(myproj)
+            fi
+        }
+
+        tmux() {
+            if [[ \"\$1\" == 'new-session' ]]; then
+                echo \"NEW:\$*\"
+                _created=1
+                return 0
+            elif [[ \"\$1\" == 'attach' ]]; then
+                echo \"ATTACH:\$*\"
+                return 0
+            fi
+        }
+
+        printf 'myproj\n' | action_new
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"NEW:new-session -d -s myproj"* ]]
+    [[ "$output" == *"ATTACH:attach -t myproj"* ]]
+}
+
 @test "action_new allows '-' to disable default init command" {
     run bash -c "
         source '${LIB_DIR}/constants.sh'
