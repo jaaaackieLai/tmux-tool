@@ -16,6 +16,8 @@ read_key() {
         esac
     elif [[ "$key" == "" ]]; then
         echo "ENTER"
+    elif [[ "$key" == $'\t' ]]; then
+        echo "TAB"
     else
         echo "$key"
     fi
@@ -31,6 +33,10 @@ handle_detail_input() {
             DIRTY=1
             ;;
         DOWN)
+            DETAIL_SELECTED=$(( (DETAIL_SELECTED + 1) % ${#DETAIL_ACTIONS[@]} ))
+            DIRTY=1
+            ;;
+        TAB)
             DETAIL_SELECTED=$(( (DETAIL_SELECTED + 1) % ${#DETAIL_ACTIONS[@]} ))
             DIRTY=1
             ;;
@@ -66,6 +72,12 @@ handle_input() {
             fi
             ;;
         DOWN)
+            if (( ${#SESSIONS[@]} > 0 )); then
+                SELECTED=$(( (SELECTED + 1) % ${#SESSIONS[@]} ))
+                DIRTY=1
+            fi
+            ;;
+        TAB)
             if (( ${#SESSIONS[@]} > 0 )); then
                 SELECTED=$(( (SELECTED + 1) % ${#SESSIONS[@]} ))
                 DIRTY=1

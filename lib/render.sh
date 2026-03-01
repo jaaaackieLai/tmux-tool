@@ -170,7 +170,7 @@ draw_footer() {
     local row=$(( TERM_ROWS - 1 ))
     buf_cursor_to "$row" 1
     buf_clear_line
-    buf_printf " ${GREEN}[Enter]${RESET} open  ${BLUE}[n]${RESET} new  ${DIM}[f]${RESET} refresh  ${DIM}[q]${RESET} quit"
+    buf_printf " ${DIM}[Tab]${RESET} next  ${GREEN}[Enter]${RESET} open  ${BLUE}[n]${RESET} new  ${DIM}[f]${RESET} refresh  ${DIM}[q]${RESET} quit"
 
     # Scroll position indicator on right side
     if [[ ${#SESSIONS[@]} -gt 0 ]]; then
@@ -204,7 +204,7 @@ draw_detail_footer() {
     local row=$(( TERM_ROWS - 1 ))
     buf_cursor_to "$row" 1
     buf_clear_line
-    buf_printf " ${DIM}[Up/Down]${RESET} select  ${GREEN}[Enter]${RESET} confirm  ${GREEN}[a]${RESET}ttach ${BLUE}[r]${RESET}ename ${RED}[k]${RESET}ill  ${DIM}[ESC]${RESET} back"
+    buf_printf " ${DIM}[Up/Down/Tab]${RESET} select  ${GREEN}[Enter]${RESET} confirm  ${GREEN}[a]${RESET}ttach ${BLUE}[r]${RESET}ename ${RED}[k]${RESET}ill  ${DIM}[ESC]${RESET} back"
 }
 
 render_list() {

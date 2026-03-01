@@ -588,6 +588,105 @@ load 'test_helper'
     [ "$output" = "1" ]
 }
 
+@test "read_key returns TAB for tab character" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        printf '\t' | read_key
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "TAB" ]
+}
+
+@test "TAB in list mode increments SELECTED" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        read_key() { echo 'TAB'; }
+        render() { :; }
+        handle_input
+        echo \"\$SELECTED\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "1" ]
+}
+
+@test "TAB in list mode wraps to first session when at last" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=2
+        read_key() { echo 'TAB'; }
+        render() { :; }
+        handle_input
+        echo \"\$SELECTED\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "0" ]
+}
+
+@test "TAB in detail mode increments DETAIL_SELECTED" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        DETAIL_SELECTED=1
+        VIEW_MODE='detail'
+        read_key() { echo 'TAB'; }
+        render() { :; }
+        handle_detail_input
+        echo \"\$DETAIL_SELECTED\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "2" ]
+}
+
+@test "TAB in detail mode wraps to first action when at last" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+        source '${LIB_DIR}/input.sh'
+        SESSIONS=(alpha beta gamma)
+        SELECTED=0
+        DETAIL_SELECTED=3
+        VIEW_MODE='detail'
+        read_key() { echo 'TAB'; }
+        render() { :; }
+        handle_detail_input
+        echo \"\$DETAIL_SELECTED\"
+    "
+    [ "$status" -eq 0 ]
+    [ "$output" = "0" ]
+}
+
 @test "DIRTY stays 0 on TIMEOUT with no AI dir" {
     run bash -c "
         source '${LIB_DIR}/constants.sh'
