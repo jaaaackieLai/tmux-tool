@@ -145,6 +145,18 @@ if [[ -z "${TMUX:-}" ]] && command -v tmux-session >/dev/null 2>&1; then
 fi
 ```
 
+## 版本管理
+
+使用 [Semantic Versioning](https://semver.org)：`MAJOR.MINOR.PATCH`
+
+| 位置 | 何時 bump | 範例 |
+|------|-----------|------|
+| MAJOR | 破壞性變更（不向下相容） | 改 CLI 介面、砍舊功能 |
+| MINOR | 新增功能（向下相容） | 加按鍵、新操作 |
+| PATCH | 修 bug | 修顯示錯誤 |
+
+版本號定義在 `lib/constants.sh` 的 `VERSION` 變數。`--update` 機制靠比對遠端版本號決定是否更新，所以推新功能時必須 bump 版本。
+
 ## 開發備註
 
 - AI model: `claude-haiku-4-5-20251001`

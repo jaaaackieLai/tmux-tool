@@ -99,11 +99,11 @@ tmux-session
 
 ## Dependencies
 
-| Dependency | Required | Purpose |
-|---|---|---|
-| `tmux` | Yes | Session management |
-| `curl` | No | AI API requests |
-| `jq` | No | AI JSON parsing |
+| Dependency | Required | Purpose | macOS | Debian/Ubuntu |
+|---|---|---|---|---|
+| `tmux` | Yes | Session management | `brew install tmux` | `sudo apt install tmux` |
+| `curl` | No | AI API requests | Built-in | `sudo apt install curl` |
+| `jq` | No | AI JSON parsing | `brew install jq` | `sudo apt install jq` |
 
 ## Keybindings
 

@@ -99,11 +99,11 @@ tmux-session
 
 ## 相依套件
 
-| 套件 | 必要 | 用途 |
-|---|---|---|
-| `tmux` | 是 | Session 管理 |
-| `curl` | 否 | 呼叫 AI API |
-| `jq` | 否 | 解析 AI 回應 JSON |
+| 套件 | 必要 | 用途 | macOS | Debian/Ubuntu |
+|---|---|---|---|---|
+| `tmux` | 是 | Session 管理 | `brew install tmux` | `sudo apt install tmux` |
+| `curl` | 否 | 呼叫 AI API | 內建 | `sudo apt install curl` |
+| `jq` | 否 | 解析 AI 回應 JSON | `brew install jq` | `sudo apt install jq` |
 
 ## 快捷鍵
 
