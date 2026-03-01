@@ -120,7 +120,7 @@ ${INSTALL_PREFIX}/bin/tmux-session      # symlink -> ../share/tmux-session/tmux-
 ```bash
 ./install.sh                          # 安裝到 ~/.local（預設）
 INSTALL_PREFIX=/usr/local ./install.sh  # 自訂安裝路徑（需 sudo）
-curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install.sh | bash
+curl -fsSL https://jaaaackielai.github.io/tmux-tool/install.sh | bash
 ```
 
 更新：
