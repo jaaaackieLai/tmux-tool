@@ -82,7 +82,7 @@ load 'test_helper'
 
 # ─── SELECTED boundary tests via handle_input ────────────────────────
 
-@test "UP key does not go below 0 when SELECTED is 0" {
+@test "UP key wraps to last session when SELECTED is 0" {
     run bash -c "
         source '${LIB_DIR}/constants.sh'
         source '${LIB_DIR}/utils.sh'
@@ -93,18 +93,16 @@ load 'test_helper'
         source '${LIB_DIR}/input.sh'
         SESSIONS=(alpha beta gamma)
         SELECTED=0
-        # Mock read_key to return UP
         read_key() { echo 'UP'; }
-        # Mock render to do nothing
         render() { :; }
         handle_input
         echo \"\$SELECTED\"
     "
     [ "$status" -eq 0 ]
-    [ "$output" = "0" ]
+    [ "$output" = "2" ]
 }
 
-@test "DOWN key does not exceed last session index" {
+@test "DOWN key wraps to first session when at last index" {
     run bash -c "
         source '${LIB_DIR}/constants.sh'
         source '${LIB_DIR}/utils.sh'
@@ -115,14 +113,13 @@ load 'test_helper'
         source '${LIB_DIR}/input.sh'
         SESSIONS=(alpha beta gamma)
         SELECTED=2
-        # Mock read_key to return DOWN
         read_key() { echo 'DOWN'; }
         render() { :; }
         handle_input
         echo \"\$SELECTED\"
     "
     [ "$status" -eq 0 ]
-    [ "$output" = "2" ]
+    [ "$output" = "0" ]
 }
 
 @test "UP key decrements SELECTED from middle" {
@@ -320,7 +317,7 @@ load 'test_helper'
     [ "$output" = "2" ]
 }
 
-@test "UP in detail mode does not go below 0" {
+@test "UP in detail mode wraps to last action when at 0" {
     run bash -c "
         source '${LIB_DIR}/constants.sh'
         source '${LIB_DIR}/utils.sh'
@@ -339,10 +336,10 @@ load 'test_helper'
         echo \"\$DETAIL_SELECTED\"
     "
     [ "$status" -eq 0 ]
-    [ "$output" = "0" ]
+    [ "$output" = "3" ]
 }
 
-@test "DOWN in detail mode does not exceed last action index" {
+@test "DOWN in detail mode wraps to first action when at last" {
     run bash -c "
         source '${LIB_DIR}/constants.sh'
         source '${LIB_DIR}/utils.sh'
@@ -361,7 +358,7 @@ load 'test_helper'
         echo \"\$DETAIL_SELECTED\"
     "
     [ "$status" -eq 0 ]
-    [ "$output" = "3" ]
+    [ "$output" = "0" ]
 }
 
 @test "ENTER in detail mode with DETAIL_SELECTED=0 calls action_attach" {

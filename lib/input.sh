@@ -27,16 +27,12 @@ handle_detail_input() {
 
     case "$key" in
         UP)
-            if (( DETAIL_SELECTED > 0 )); then
-                DETAIL_SELECTED=$(( DETAIL_SELECTED - 1 ))
-                DIRTY=1
-            fi
+            DETAIL_SELECTED=$(( (DETAIL_SELECTED - 1 + ${#DETAIL_ACTIONS[@]}) % ${#DETAIL_ACTIONS[@]} ))
+            DIRTY=1
             ;;
         DOWN)
-            if (( DETAIL_SELECTED < ${#DETAIL_ACTIONS[@]} - 1 )); then
-                DETAIL_SELECTED=$(( DETAIL_SELECTED + 1 ))
-                DIRTY=1
-            fi
+            DETAIL_SELECTED=$(( (DETAIL_SELECTED + 1) % ${#DETAIL_ACTIONS[@]} ))
+            DIRTY=1
             ;;
         ENTER)
             case "${DETAIL_ACTIONS[$DETAIL_SELECTED]}" in
@@ -64,14 +60,14 @@ handle_input() {
 
     case "$key" in
         UP)
-            if (( SELECTED > 0 )); then
-                SELECTED=$(( SELECTED - 1 ))
+            if (( ${#SESSIONS[@]} > 0 )); then
+                SELECTED=$(( (SELECTED - 1 + ${#SESSIONS[@]}) % ${#SESSIONS[@]} ))
                 DIRTY=1
             fi
             ;;
         DOWN)
-            if (( ${#SESSIONS[@]} > 0 && SELECTED < ${#SESSIONS[@]} - 1 )); then
-                SELECTED=$(( SELECTED + 1 ))
+            if (( ${#SESSIONS[@]} > 0 )); then
+                SELECTED=$(( (SELECTED + 1) % ${#SESSIONS[@]} ))
                 DIRTY=1
             fi
             ;;
