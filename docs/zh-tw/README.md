@@ -1,22 +1,22 @@
 # tmux-tool
 
-> A fast, keyboard-first tmux session manager with AI-powered context summaries.
+> 一個快速、鍵盤導向、可選 AI 摘要的 tmux 工作階段管理工具。
 
-`tmux-session` helps you manage many tmux sessions without losing context.
-It is built in pure Bash, starts quickly, and works even without AI enabled.
+`tmux-session` 讓你在多個 tmux session 之間切換與管理時，不再丟失上下文。
+工具以純 Bash 實作，啟動輕快；即使不開啟 AI 功能，也能完整使用。
 
-[繁體中文說明](./docs/zh-tw/README.md)
+[English README](../../README.md)
 
-## Why tmux-session
+## 為什麼用 tmux-session
 
-- Stay focused: see active sessions and recent output in one place.
-- Work faster: attach, rename, kill, and create sessions from a single TUI.
-- Keep context: optional AI summaries describe what each session is doing.
-- Lightweight: only `tmux` is required; `curl` and `jq` are optional for AI.
+- 專注不分心：所有 session 一頁總覽，並即時預覽輸出。
+- 操作更快：`attach`、`rename`、`kill`、`new` 全部在同一個 TUI 完成。
+- 上下文更清楚：可選 AI 一行摘要，快速看懂每個 session 正在做什麼。
+- 輕量零負擔：必需依賴只有 `tmux`，AI 相關只需額外 `curl` + `jq`。
 
-## Preview
+## 介面預覽
 
-### List View
+### 清單視圖（List View）
 
 ```text
  tmux-session manager  v1.0.0
@@ -33,7 +33,7 @@ It is built in pure Bash, starts quickly, and works even without AI enabled.
  [Enter] open  [n] new  [f] refresh  [q] quit
 ```
 
-### Detail View
+### 詳細視圖（Detail View）
 
 ```text
  my-project                    v1.0.0
@@ -49,39 +49,39 @@ It is built in pure Bash, starts quickly, and works even without AI enabled.
  [Up/Down] select  [Enter] confirm  [a]ttach [r]ename [k]ill  [ESC] back
 ```
 
-## Features
+## 主要功能
 
-- Two-level TUI: list view + detail view.
-- Real-time pane preview for the selected session.
-- AI one-line summaries for each session.
-- AI-assisted session rename suggestions.
-- Background AI jobs so UI stays responsive.
-- Self-update support: `tmux-session --update`.
+- 雙層 TUI：清單視圖 + 詳細視圖。
+- 即時預覽目前選取 session 的終端輸出。
+- 每個 session 的 AI 一行摘要。
+- 重新命名時可用 AI 建議名稱。
+- AI 任務在背景執行，不阻塞互動介面。
+- 內建自我更新：`tmux-session --update`。
 
-## Quick Start
+## 快速開始
 
-### 1) Install
+### 1) 安裝
 
-From local clone:
+從本地 clone 安裝：
 
 ```bash
 git clone <repo-url> && cd tmux-tool
 ./install.sh
 ```
 
-Direct install from GitHub:
+從 GitHub 直接安裝：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install.sh | bash
 ```
 
-Install to `~/.local/bin`:
+安裝到 `~/.local/bin`：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install.sh | INSTALL_DIR="$HOME/.local/bin" bash
 ```
 
-### 2) Verify
+### 2) 驗證
 
 ```bash
 hash -r
@@ -89,52 +89,52 @@ command -v tmux-session
 tmux-session -h
 ```
 
-### 3) Launch
+### 3) 啟動
 
 ```bash
 tmux-session
 ```
 
-## Dependencies
+## 相依套件
 
-| Dependency | Required | Purpose |
+| 套件 | 必要 | 用途 |
 |---|---|---|
-| `tmux` | Yes | Session management |
-| `curl` | No | AI API requests |
-| `jq` | No | AI JSON parsing |
+| `tmux` | 是 | Session 管理 |
+| `curl` | 否 | 呼叫 AI API |
+| `jq` | 否 | 解析 AI 回應 JSON |
 
-## Keybindings
+## 快捷鍵
 
-### List View
+### 清單視圖（List View）
 
-| Key | Action |
+| 按鍵 | 動作 |
 |---|---|
-| `Up/Down` | Move selection |
-| `Enter` | Open detail view |
-| `n` | New session |
-| `f` | Refresh sessions + AI summaries |
-| `q` | Quit |
+| `Up/Down` | 移動選取 |
+| `Enter` | 進入詳細視圖 |
+| `n` | 建立新 session |
+| `f` | 重新整理清單 + AI 摘要 |
+| `q` | 離開 |
 
-### Detail View
+### 詳細視圖（Detail View）
 
-| Key | Action |
+| 按鍵 | 動作 |
 |---|---|
-| `Up/Down` | Move menu selection |
-| `Enter` | Run selected action |
+| `Up/Down` | 移動選單 |
+| `Enter` | 執行選取動作 |
 | `a` | Attach session |
-| `r` | Rename (with AI suggestion) |
-| `k` | Kill session |
-| `ESC` / `q` | Back to list |
+| `r` | 重新命名（含 AI 建議） |
+| `k` | 結束 session |
+| `ESC` / `q` | 回到清單 |
 
-## Configuration
+## 設定
 
-Default config file:
+預設設定檔路徑：
 
 ```bash
 ~/.config/tmux-session/config.sh
 ```
 
-Example:
+範例：
 
 ```bash
 TMUX_SESSION_NEW_DEFAULT_DIR="$HOME/work/my-project"
@@ -143,31 +143,31 @@ TMUX_SESSION_NEW_ASK_DIR=1
 TMUX_SESSION_NEW_ASK_CMD=1
 ```
 
-Override config path:
+覆寫設定檔路徑：
 
 ```bash
 TMUX_SESSION_CONFIG_FILE=/path/to/config.sh tmux-session
 ```
 
-## AI Features
+## AI 功能
 
-Set API key:
+先設定 API Key：
 
 ```bash
 export ANTHROPIC_API_KEY='sk-ant-...'
 ```
 
-When enabled, `tmux-session`:
+啟用後，`tmux-session` 會：
 
-- captures recent pane output,
-- generates a one-line Traditional Chinese status summary,
-- suggests a short rename candidate.
+- 擷取近期 pane 輸出，
+- 產生每個 session 的繁中一行摘要，
+- 提供可直接採用的短名稱建議。
 
-Without API key, all non-AI features still work.
+若未設定 API Key，非 AI 功能仍可完整運作。
 
-## Auto-launch on shell start
+## Shell 啟動時自動開啟
 
-Add to `~/.bashrc` or `~/.zshrc`:
+加到 `~/.bashrc` 或 `~/.zshrc`：
 
 ```bash
 if [[ -z "${TMUX:-}" ]] && command -v tmux-session >/dev/null 2>&1; then
@@ -175,7 +175,7 @@ if [[ -z "${TMUX:-}" ]] && command -v tmux-session >/dev/null 2>&1; then
 fi
 ```
 
-## CLI
+## CLI 指令
 
 ```text
 tmux-session --help
@@ -183,6 +183,6 @@ tmux-session --version
 tmux-session --update
 ```
 
-## License
+## 授權
 
 MIT
