@@ -75,11 +75,13 @@ Direct install from GitHub:
 curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install.sh | bash
 ```
 
-Install to `~/.local/bin`:
+Custom install prefix (default is `~/.local`):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install.sh | INSTALL_DIR="$HOME/.local/bin" bash
+INSTALL_PREFIX=/usr/local ./install.sh
 ```
+
+Files are installed to `${INSTALL_PREFIX}/share/tmux-session/` with a symlink at `${INSTALL_PREFIX}/bin/tmux-session`.
 
 ### 2) Verify
 
@@ -181,6 +183,7 @@ fi
 tmux-session --help
 tmux-session --version
 tmux-session --update
+tmux-session --uninstall
 ```
 
 ## License

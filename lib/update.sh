@@ -12,7 +12,7 @@ check_remote_version() {
 }
 
 run_remote_installer() {
-    local install_dir="$1"
+    local install_prefix="$1"
     local tmpdir=""
     tmpdir=$(mktemp -d) || return 1
 
@@ -23,7 +23,7 @@ run_remote_installer() {
     fi
 
     chmod +x "$installer"
-    INSTALL_DIR="$install_dir" bash "$installer"
+    INSTALL_PREFIX="$install_prefix" bash "$installer"
     local status=$?
     rm -rf "$tmpdir"
     return $status
@@ -46,20 +46,25 @@ do_self_update() {
         return 0
     fi
 
+    # Resolve INSTALL_PREFIX from the real path of the current binary.
+    # Installed layout: ${INSTALL_PREFIX}/share/tmux-session/tmux-session
+    # So SCRIPT_DIR = ${INSTALL_PREFIX}/share/tmux-session -> go up 2 levels.
+    local install_prefix=""
     local current_bin=""
-    current_bin=$(command -v tmux-session 2>/dev/null || true)
+    current_bin=$(readlink -f "$(command -v tmux-session 2>/dev/null || echo "${SCRIPT_DIR}/tmux-session")")
+    local current_dir=""
+    current_dir=$(dirname "$current_bin")
 
-    local install_dir=""
-    if [[ -n "$current_bin" ]]; then
-        install_dir=$(dirname "$current_bin")
-    elif [[ -n "${SCRIPT_DIR:-}" ]]; then
-        install_dir="$SCRIPT_DIR"
+    if [[ "$current_dir" == *"/share/tmux-session" ]]; then
+        # New layout: strip /share/tmux-session
+        install_prefix="${current_dir%/share/tmux-session}"
     else
-        install_dir="/usr/local/bin"
+        # Development or legacy: use HOME/.local as default
+        install_prefix="${HOME}/.local"
     fi
 
     echo "Updating tmux-session v${VERSION} -> v${remote_version}"
-    if run_remote_installer "$install_dir"; then
+    if run_remote_installer "$install_prefix"; then
         echo "Update complete."
         return 0
     fi

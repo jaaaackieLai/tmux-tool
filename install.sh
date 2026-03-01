@@ -2,13 +2,16 @@
 set -euo pipefail
 
 # install.sh - Install tmux-session manager
+#
+# Layout:
+#   ${INSTALL_PREFIX}/share/tmux-session/   # all program files
+#   ${INSTALL_PREFIX}/bin/tmux-session       # symlink -> ../share/tmux-session/tmux-session
 
-readonly INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
+readonly INSTALL_PREFIX="${INSTALL_PREFIX:-${HOME}/.local}"
 SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
 readonly SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 readonly GITHUB_REPO="jaaaackieLai/tmux-tool"
 readonly GITHUB_RAW_BASE="https://raw.githubusercontent.com/${GITHUB_REPO}/main"
-readonly LIB_SUBDIR="tmux-session-lib"
 readonly LIB_FILES=(
     actions.sh
     ai.sh
@@ -20,6 +23,47 @@ readonly LIB_FILES=(
     update.sh
     utils.sh
 )
+
+BIN_DIR="${INSTALL_PREFIX}/bin"
+DATA_DIR="${INSTALL_PREFIX}/share/tmux-session"
+
+# ─── Uninstall ────────────────────────────────────────────────────────
+
+do_uninstall() {
+    echo "Uninstalling tmux-session..."
+
+    local need_sudo=false
+    if [[ -d "$DATA_DIR" && ! -w "$DATA_DIR" ]] || [[ -L "${BIN_DIR}/tmux-session" && ! -w "$BIN_DIR" ]]; then
+        need_sudo=true
+    fi
+
+    if $need_sudo; then
+        sudo rm -rf "$DATA_DIR"
+        sudo rm -f "${BIN_DIR}/tmux-session"
+    else
+        rm -rf "$DATA_DIR"
+        rm -f "${BIN_DIR}/tmux-session"
+    fi
+
+    # Clean up legacy layout (tmux-session-lib in bin dir)
+    local legacy_lib="${BIN_DIR}/tmux-session-lib"
+    if [[ -d "$legacy_lib" ]]; then
+        if $need_sudo; then
+            sudo rm -rf "$legacy_lib"
+        else
+            rm -rf "$legacy_lib"
+        fi
+    fi
+
+    echo "Uninstalled successfully."
+}
+
+if [[ "${1:-}" == "--uninstall" ]]; then
+    do_uninstall
+    exit 0
+fi
+
+# ─── Install ──────────────────────────────────────────────────────────
 
 SOURCE_DIR=""
 TMP_SOURCE_DIR=""
@@ -73,23 +117,48 @@ else
     SOURCE_DIR="${TMP_SOURCE_DIR}"
 fi
 
-# Install
-echo "Installing tmux-session to ${INSTALL_DIR}..."
-mkdir -p "$INSTALL_DIR" 2>/dev/null || true
-if [[ -w "$INSTALL_DIR" ]]; then
-    cp "${SOURCE_DIR}/tmux-session" "${INSTALL_DIR}/tmux-session"
-    chmod +x "${INSTALL_DIR}/tmux-session"
-    rm -rf "${INSTALL_DIR}/${LIB_SUBDIR}"
-    mkdir -p "${INSTALL_DIR}/${LIB_SUBDIR}"
-    cp "${SOURCE_DIR}/lib/"*.sh "${INSTALL_DIR}/${LIB_SUBDIR}/"
+# Install files to DATA_DIR, symlink in BIN_DIR
+echo "Installing tmux-session to ${DATA_DIR}..."
+
+install_files() {
+    local use_sudo="$1"
+    local cmd=""
+    if $use_sudo; then cmd="sudo"; else cmd=""; fi
+
+    # Create directories
+    $cmd mkdir -p "$DATA_DIR"
+    $cmd mkdir -p "${DATA_DIR}/lib"
+    $cmd mkdir -p "$BIN_DIR"
+
+    # Copy program files
+    $cmd cp "${SOURCE_DIR}/tmux-session" "${DATA_DIR}/tmux-session"
+    $cmd chmod +x "${DATA_DIR}/tmux-session"
+    $cmd cp "${SOURCE_DIR}/lib/"*.sh "${DATA_DIR}/lib/"
+
+    # Create symlink
+    $cmd ln -sf "${DATA_DIR}/tmux-session" "${BIN_DIR}/tmux-session"
+
+    # Clean up legacy layout (tmux-session-lib in bin dir)
+    local legacy_lib="${BIN_DIR}/tmux-session-lib"
+    if [[ -d "$legacy_lib" ]]; then
+        $cmd rm -rf "$legacy_lib"
+    fi
+    local legacy_bin="${BIN_DIR}/tmux-session"
+    if [[ -f "$legacy_bin" && ! -L "$legacy_bin" ]]; then
+        # Old install had a real file in bin; replace with symlink
+        $cmd rm -f "$legacy_bin"
+        $cmd ln -sf "${DATA_DIR}/tmux-session" "${BIN_DIR}/tmux-session"
+    fi
+}
+
+mkdir -p "$BIN_DIR" 2>/dev/null || true
+mkdir -p "$DATA_DIR" 2>/dev/null || true
+
+if [[ -w "$BIN_DIR" || ! -d "$BIN_DIR" ]] && [[ -w "$(dirname "$DATA_DIR")" || ! -d "$(dirname "$DATA_DIR")" ]]; then
+    install_files false
 else
-    echo "Need sudo to write to ${INSTALL_DIR}"
-    sudo mkdir -p "$INSTALL_DIR"
-    sudo cp "${SOURCE_DIR}/tmux-session" "${INSTALL_DIR}/tmux-session"
-    sudo chmod +x "${INSTALL_DIR}/tmux-session"
-    sudo rm -rf "${INSTALL_DIR}/${LIB_SUBDIR}"
-    sudo mkdir -p "${INSTALL_DIR}/${LIB_SUBDIR}"
-    sudo cp "${SOURCE_DIR}/lib/"*.sh "${INSTALL_DIR}/${LIB_SUBDIR}/"
+    echo "Need sudo to write to ${INSTALL_PREFIX}"
+    install_files true
 fi
 
 if [[ -n "$TMP_SOURCE_DIR" ]]; then
@@ -98,6 +167,8 @@ fi
 
 echo ""
 echo "Installed successfully!"
+echo "  Files:   ${DATA_DIR}/"
+echo "  Symlink: ${BIN_DIR}/tmux-session -> ${DATA_DIR}/tmux-session"
 echo ""
 
 # Check for API key

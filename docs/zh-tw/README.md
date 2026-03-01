@@ -75,11 +75,13 @@ git clone <repo-url> && cd tmux-tool
 curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install.sh | bash
 ```
 
-安裝到 `~/.local/bin`：
+自訂安裝路徑（預設 `~/.local`）：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install.sh | INSTALL_DIR="$HOME/.local/bin" bash
+INSTALL_PREFIX=/usr/local ./install.sh
 ```
+
+程式安裝到 `${INSTALL_PREFIX}/share/tmux-session/`，並在 `${INSTALL_PREFIX}/bin/tmux-session` 建立 symlink。
 
 ### 2) 驗證
 
@@ -181,6 +183,7 @@ fi
 tmux-session --help
 tmux-session --version
 tmux-session --update
+tmux-session --uninstall
 ```
 
 ## 授權

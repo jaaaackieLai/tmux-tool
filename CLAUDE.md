@@ -7,7 +7,7 @@ PTT 風格的 tmux session 管理工具，專為同時跑多個 Claude Code sess
 ```
 tmux-tool/
   tmux-session          # 主入口 ~74 行（bootstrap: source libs + cleanup + main）
-  install.sh            # 安裝腳本（安裝到 tmux-session-lib/ 目錄）
+  install.sh            # 安裝腳本（安裝到 share/tmux-session/ + bin/ symlink）
   CLAUDE.md             # 本檔案
   lib/
     constants.sh        # 常數、顏色、全域狀態宣告（~38 行，含 VIEW_MODE）
@@ -109,9 +109,17 @@ constants.sh → update.sh → utils.sh → config.sh → sessions.sh → ai.sh 
 
 ## 安裝
 
+安裝後的檔案結構：
+```
+${INSTALL_PREFIX}/share/tmux-session/   # 所有程式檔案
+  tmux-session                          # 主程式
+  lib/                                  # 函式庫
+${INSTALL_PREFIX}/bin/tmux-session      # symlink -> ../share/tmux-session/tmux-session
+```
+
 ```bash
-./install.sh              # 安裝到 /usr/local/bin
-INSTALL_DIR=~/.local/bin ./install.sh  # 自訂安裝路徑
+./install.sh                          # 安裝到 ~/.local（預設）
+INSTALL_PREFIX=/usr/local ./install.sh  # 自訂安裝路徑（需 sudo）
 curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install.sh | bash
 ```
 
@@ -119,6 +127,14 @@ curl -fsSL https://raw.githubusercontent.com/jaaaackieLai/tmux-tool/main/install
 
 ```bash
 tmux-session --update
+```
+
+移除：
+
+```bash
+tmux-session --uninstall
+# 或
+./install.sh --uninstall
 ```
 
 ## 自動啟動（加到 .bashrc / .zshrc）
