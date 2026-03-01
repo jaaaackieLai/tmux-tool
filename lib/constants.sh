@@ -4,7 +4,7 @@
 [[ -n "${_CONSTANTS_LOADED:-}" ]] && return
 readonly _CONSTANTS_LOADED=1
 
-readonly VERSION="1.3.0"
+readonly VERSION="1.4.0"
 readonly GITHUB_REPO="jaaaackieLai/tmux-tool"
 readonly GITHUB_RAW_BASE="https://raw.githubusercontent.com/${GITHUB_REPO}/main"
 readonly PREVIEW_LINES=15
