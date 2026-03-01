@@ -27,6 +27,12 @@ readonly WHITE=$'\033[37m'
 readonly BG_BLUE=$'\033[44m'
 readonly GRAY=$'\033[90m'
 
+# ─── Readline-safe styles (for read -p prompts) ─────────────────────
+readonly RL_BOLD=$'\001\033[1m\002'
+readonly RL_RESET=$'\001\033[0m\002'
+readonly RL_DIM=$'\001\033[2m\002'
+readonly RL_RED=$'\001\033[31m\002'
+
 # ─── State ────────────────────────────────────────────────────────────
 declare -a SESSIONS=()
 declare -a AI_SUMMARIES=()

@@ -46,8 +46,7 @@ action_rename() {
                 stty echo icanon 2>/dev/null || true
                 cursor_to "$prompt_row" 1
                 clear_line
-                printf " ${BOLD}Custom name${RESET} ${DIM}(AI: %s, empty=cancel): ${RESET}" "$suggested"
-                IFS= read -r -e new_name || true
+                IFS= read -r -e -p " ${RL_BOLD}Custom name${RL_RESET} ${RL_DIM}(AI: ${suggested}, empty=cancel): ${RL_RESET}" new_name || true
                 ;;
             $'\x1b'|q|Q)
                 new_name=""
@@ -60,8 +59,7 @@ action_rename() {
         # Restore terminal for line input
         stty "$SAVED_TTY" 2>/dev/null || true
         stty echo icanon 2>/dev/null || true
-        printf " ${BOLD}Rename '%s' to${RESET} ${DIM}(empty=cancel): ${RESET}" "$session"
-        IFS= read -r -e new_name || true
+        IFS= read -r -e -p " ${RL_BOLD}Rename '${session}' to${RL_RESET} ${RL_DIM}(empty=cancel): ${RL_RESET}" new_name || true
     fi
 
     # Re-setup raw terminal
@@ -130,9 +128,8 @@ action_new() {
     stty "$SAVED_TTY" 2>/dev/null || true
     stty echo icanon 2>/dev/null || true
 
-    printf " ${BOLD}New session name${RESET} (empty=cancel): "
     local name=""
-    IFS= read -r -e name || true
+    IFS= read -r -e -p " ${RL_BOLD}New session name${RL_RESET} (empty=cancel): " name || true
 
     local workdir="${TMUX_SESSION_NEW_DEFAULT_DIR:-}"
     local init_cmd="${TMUX_SESSION_NEW_DEFAULT_CMD:-}"
@@ -141,26 +138,20 @@ action_new() {
 
     if [[ -n "$name" ]]; then
         if [[ "$ask_dir" == "1" ]]; then
-            if [[ -n "$workdir" ]]; then
-                printf " ${BOLD}Workdir${RESET} ${DIM}(empty=%s): ${RESET}" "$workdir"
-            else
-                printf " ${BOLD}Workdir${RESET} ${DIM}(empty=skip): ${RESET}"
-            fi
+            local dir_hint="empty=skip"
+            [[ -n "$workdir" ]] && dir_hint="empty=${workdir}"
             local input_dir=""
-            IFS= read -r -e input_dir || true
+            IFS= read -r -e -p " ${RL_BOLD}Workdir${RL_RESET} ${RL_DIM}(${dir_hint}): ${RL_RESET}" input_dir || true
             if [[ -n "$input_dir" ]]; then
                 workdir="$input_dir"
             fi
         fi
 
         if [[ "$ask_cmd" == "1" ]]; then
-            if [[ -n "$init_cmd" ]]; then
-                printf " ${BOLD}Init command${RESET} ${DIM}(empty=%s, '-'=none): ${RESET}" "$init_cmd"
-            else
-                printf " ${BOLD}Init command${RESET} ${DIM}(empty=none): ${RESET}"
-            fi
+            local cmd_hint="empty=none"
+            [[ -n "$init_cmd" ]] && cmd_hint="empty=${init_cmd}, '-'=none"
             local input_cmd=""
-            IFS= read -r -e input_cmd || true
+            IFS= read -r -e -p " ${RL_BOLD}Init command${RL_RESET} ${RL_DIM}(${cmd_hint}): ${RL_RESET}" input_cmd || true
             if [[ "$input_cmd" == "-" ]]; then
                 init_cmd=""
             elif [[ -n "$input_cmd" ]]; then
