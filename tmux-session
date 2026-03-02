@@ -25,6 +25,19 @@ source "${LIB_DIR}/render.sh"
 source "${LIB_DIR}/actions.sh"
 source "${LIB_DIR}/input.sh"
 
+# ─── CLI handlers ────────────────────────────────────────────────────
+
+handle_config() {
+    local key="${1:-}" value="${2:-}"
+    if [[ -z "$key" || "$key" == "--list" ]]; then
+        config_list
+    elif [[ -z "$value" ]]; then
+        config_get "$key"
+    else
+        config_set "$key" "$value"
+    fi
+}
+
 # ─── Cleanup and main ────────────────────────────────────────────────
 
 SAVED_TTY=""
@@ -43,10 +56,11 @@ main() {
     check_deps
     load_user_config
 
-    # Handle --version / --help / --uninstall
+    # Handle --version / --help / --uninstall / --config
     case "${1:-}" in
         --version|-v) echo "tmux-session v${VERSION}"; exit 0 ;;
         --update) do_self_update; exit $? ;;
+        --config) handle_config "${2:-}" "${3:-}"; exit $? ;;
         --uninstall)
             echo "Uninstalling tmux-session..."
             # SCRIPT_DIR is the real path (resolved symlink), e.g. ~/.local/share/tmux-session
@@ -93,8 +107,11 @@ main() {
             echo "  TMUX_SESSION_NEW_ASK_CMD   Ask for init command each time (1/0)"
             echo ""
             echo "Options:"
-            echo "  --update     Update tmux-session from GitHub"
-            echo "  --uninstall  Remove tmux-session from system"
+            echo "  --config [--list]          List all settings and values"
+            echo "  --config KEY               Read a config value"
+            echo "  --config KEY VALUE         Set a config value"
+            echo "  --update                   Update tmux-session from GitHub"
+            echo "  --uninstall                Remove tmux-session from system"
             exit 0
             ;;
     esac

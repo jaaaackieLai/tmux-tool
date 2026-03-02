@@ -135,25 +135,38 @@ tmux-session
 
 ## Configuration
 
-Default config file:
+### Quick config via CLI
 
 ```bash
-~/.config/tmux-session/config.sh
+tmux-session --config --list              # List all settings and values
+tmux-session --config NEW_DEFAULT_DIR     # Read one setting
+tmux-session --config NEW_DEFAULT_DIR ~/projects  # Set a value
 ```
 
-Example:
+### Config file
+
+Default location: `~/.config/tmux-session/config.sh`
+
+Override with: `TMUX_SESSION_CONFIG_FILE=/path/to/config.sh tmux-session`
+
+### Settings
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `NEW_DEFAULT_DIR` | path | (empty) | Working directory for new sessions. When set, every session created with `n` starts in this directory. |
+| `NEW_DEFAULT_CMD` | string | (empty) | Command to run automatically in new sessions (e.g. `source .venv/bin/activate`). Sent via `tmux send-keys` after session creation. |
+| `NEW_ASK_DIR` | bool | `0` | When `1`, the `n` (new session) prompt asks for a working directory each time. The value of `NEW_DEFAULT_DIR` is used as the default hint. |
+| `NEW_ASK_CMD` | bool | `0` | When `1`, the `n` (new session) prompt asks for an init command each time. The value of `NEW_DEFAULT_CMD` is used as the default hint; enter `-` to skip. |
+
+Bool values accept `1`/`true`/`yes`/`on` (truthy) or anything else (falsy).
+
+Example config file:
 
 ```bash
 TMUX_SESSION_NEW_DEFAULT_DIR="$HOME/work/my-project"
 TMUX_SESSION_NEW_DEFAULT_CMD="source .venv/bin/activate"
 TMUX_SESSION_NEW_ASK_DIR=1
 TMUX_SESSION_NEW_ASK_CMD=1
-```
-
-Override config path:
-
-```bash
-TMUX_SESSION_CONFIG_FILE=/path/to/config.sh tmux-session
 ```
 
 ## AI Features
@@ -189,6 +202,7 @@ tmux-session --help
 tmux-session --version
 tmux-session --update
 tmux-session --uninstall
+tmux-session --config [--list | KEY | KEY VALUE]
 ```
 
 ## License

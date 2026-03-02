@@ -135,25 +135,38 @@ tmux-session
 
 ## 設定
 
-預設設定檔路徑：
+### 透過 CLI 快速設定
 
 ```bash
-~/.config/tmux-session/config.sh
+tmux-session --config --list              # 列出所有設定值
+tmux-session --config NEW_DEFAULT_DIR     # 讀取單一設定
+tmux-session --config NEW_DEFAULT_DIR ~/projects  # 寫入設定值
 ```
 
-範例：
+### 設定檔
+
+預設路徑：`~/.config/tmux-session/config.sh`
+
+覆寫路徑：`TMUX_SESSION_CONFIG_FILE=/path/to/config.sh tmux-session`
+
+### 設定項目
+
+| 設定 Key | 型別 | 預設值 | 說明 |
+|----------|------|--------|------|
+| `NEW_DEFAULT_DIR` | 路徑 | (空) | 新 session 的工作目錄。設定後，按 `n` 建立的 session 會自動 `cd` 到此目錄。 |
+| `NEW_DEFAULT_CMD` | 字串 | (空) | 新 session 建立後自動執行的指令（例如 `source .venv/bin/activate`）。透過 `tmux send-keys` 送入。 |
+| `NEW_ASK_DIR` | 布林 | `0` | 設為 `1` 時，按 `n` 建立新 session 會先詢問工作目錄。`NEW_DEFAULT_DIR` 的值作為預設提示。 |
+| `NEW_ASK_CMD` | 布林 | `0` | 設為 `1` 時，按 `n` 建立新 session 會先詢問啟動指令。`NEW_DEFAULT_CMD` 的值作為預設提示；輸入 `-` 可跳過。 |
+
+布林值接受 `1`/`true`/`yes`/`on`（真），其餘皆為假。
+
+設定檔範例：
 
 ```bash
 TMUX_SESSION_NEW_DEFAULT_DIR="$HOME/work/my-project"
 TMUX_SESSION_NEW_DEFAULT_CMD="source .venv/bin/activate"
 TMUX_SESSION_NEW_ASK_DIR=1
 TMUX_SESSION_NEW_ASK_CMD=1
-```
-
-覆寫設定檔路徑：
-
-```bash
-TMUX_SESSION_CONFIG_FILE=/path/to/config.sh tmux-session
 ```
 
 ## AI 功能
@@ -189,6 +202,7 @@ tmux-session --help
 tmux-session --version
 tmux-session --update
 tmux-session --uninstall
+tmux-session --config [--list | KEY | KEY VALUE]
 ```
 
 ## 授權

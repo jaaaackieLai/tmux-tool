@@ -45,3 +45,86 @@ load_user_config() {
     TMUX_SESSION_NEW_ASK_DIR=$(normalize_bool "${TMUX_SESSION_NEW_ASK_DIR:-0}")
     TMUX_SESSION_NEW_ASK_CMD=$(normalize_bool "${TMUX_SESSION_NEW_ASK_CMD:-0}")
 }
+
+# ─── Config CLI helpers ─────────────────────────────────────────────
+
+readonly -a CONFIG_KEYS=(NEW_DEFAULT_DIR NEW_DEFAULT_CMD NEW_ASK_DIR NEW_ASK_CMD)
+readonly -a CONFIG_BOOL_KEYS=(NEW_ASK_DIR NEW_ASK_CMD)
+
+_is_valid_config_key() {
+    local key="$1" k
+    for k in "${CONFIG_KEYS[@]}"; do
+        [[ "$k" == "$key" ]] && return 0
+    done
+    return 1
+}
+
+_is_bool_key() {
+    local key="$1" k
+    for k in "${CONFIG_BOOL_KEYS[@]}"; do
+        [[ "$k" == "$key" ]] && return 0
+    done
+    return 1
+}
+
+config_list() {
+    TMUX_SESSION_CONFIG_FILE="${TMUX_SESSION_CONFIG_FILE:-$(default_config_file)}"
+    # Reset to defaults before sourcing
+    local TMUX_SESSION_NEW_DEFAULT_DIR=""
+    local TMUX_SESSION_NEW_DEFAULT_CMD=""
+    local TMUX_SESSION_NEW_ASK_DIR="0"
+    local TMUX_SESSION_NEW_ASK_CMD="0"
+    if [[ -f "$TMUX_SESSION_CONFIG_FILE" ]]; then
+        # shellcheck disable=SC1090
+        source "$TMUX_SESSION_CONFIG_FILE"
+    fi
+    local key
+    for key in "${CONFIG_KEYS[@]}"; do
+        local var="TMUX_SESSION_${key}"
+        echo "${key}=${!var}"
+    done
+}
+
+config_get() {
+    local key="$1"
+    if ! _is_valid_config_key "$key"; then
+        echo "Invalid config key: ${key}" >&2
+        return 1
+    fi
+    TMUX_SESSION_CONFIG_FILE="${TMUX_SESSION_CONFIG_FILE:-$(default_config_file)}"
+    local TMUX_SESSION_NEW_DEFAULT_DIR=""
+    local TMUX_SESSION_NEW_DEFAULT_CMD=""
+    local TMUX_SESSION_NEW_ASK_DIR="0"
+    local TMUX_SESSION_NEW_ASK_CMD="0"
+    if [[ -f "$TMUX_SESSION_CONFIG_FILE" ]]; then
+        # shellcheck disable=SC1090
+        source "$TMUX_SESSION_CONFIG_FILE"
+    fi
+    local var="TMUX_SESSION_${key}"
+    echo "${!var}"
+}
+
+config_set() {
+    local key="$1" value="$2"
+    if ! _is_valid_config_key "$key"; then
+        echo "Invalid config key: ${key}" >&2
+        return 1
+    fi
+    if _is_bool_key "$key"; then
+        value=$(normalize_bool "$value")
+    fi
+    TMUX_SESSION_CONFIG_FILE="${TMUX_SESSION_CONFIG_FILE:-$(default_config_file)}"
+    local config_dir
+    config_dir="$(dirname "$TMUX_SESSION_CONFIG_FILE")"
+    if [[ ! -d "$config_dir" ]]; then
+        mkdir -p "$config_dir"
+        chmod 700 "$config_dir"
+    fi
+    local full_key="TMUX_SESSION_${key}"
+    local line="${full_key}=\"${value}\""
+    if [[ -f "$TMUX_SESSION_CONFIG_FILE" ]] && grep -q "^${full_key}=" "$TMUX_SESSION_CONFIG_FILE"; then
+        sed -i "s|^${full_key}=.*|${line}|" "$TMUX_SESSION_CONFIG_FILE"
+    else
+        echo "$line" >> "$TMUX_SESSION_CONFIG_FILE"
+    fi
+}
