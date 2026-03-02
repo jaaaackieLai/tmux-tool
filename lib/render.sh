@@ -72,9 +72,9 @@ draw_session_list() {
         fi
 
         if (( idx == SELECTED )); then
-            buf_printf " ${REVERSE}${BOLD} > %-20s${RESET}${ai_text}" "$display_name"
+            buf_printf " ${REVERSE}${BOLD} > %-20s${RESET}%s" "$display_name" "$ai_text"
         else
-            buf_printf "   %-20s${ai_text}" "$display_name"
+            buf_printf "   %-20s%s" "$display_name" "$ai_text"
         fi
     done
 

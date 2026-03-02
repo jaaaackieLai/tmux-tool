@@ -57,7 +57,7 @@ EOF
         exit \$status
     "
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Updating tmux-session v1.0.0 -> v9.9.9"* ]]
+    [[ "$output" == *"Updating tmux-session v"*" -> v9.9.9"* ]]
     [[ "$output" == *"INSTALL_DIR:"* ]]
     [[ "$output" == *"Update complete."* ]]
 }

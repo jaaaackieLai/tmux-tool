@@ -255,6 +255,22 @@ spy_capture_pane() {
     [[ "$output" != *"C-b d"* ]]
 }
 
+# ─── AI summary printf safety tests ──────────────────────────────────
+
+@test "draw_session_list handles percent in AI summary without crashing" {
+    SESSIONS=("test-session")
+    AI_SUMMARIES=("完成 80% 測試")
+    SELECTED=0
+    TERM_COLS=80
+    TERM_ROWS=25
+    _RENDER_BUF=""
+    ai_enabled() { return 0; }
+
+    draw_session_list
+    output=$(buf_flush 2>&1)
+    [[ "$output" == *"80%"* ]]
+}
+
 # ─── buf_* output buffering tests ───────────────────────────────────
 
 @test "buf_print appends text to _RENDER_BUF" {
