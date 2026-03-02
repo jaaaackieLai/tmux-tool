@@ -122,9 +122,16 @@ config_set() {
     fi
     local full_key="TMUX_SESSION_${key}"
     local line="${full_key}=\"${value}\""
+    local is_new=false
+    [[ ! -f "$TMUX_SESSION_CONFIG_FILE" ]] && is_new=true
+
     if [[ -f "$TMUX_SESSION_CONFIG_FILE" ]] && grep -q "^${full_key}=" "$TMUX_SESSION_CONFIG_FILE"; then
         sed -i "s|^${full_key}=.*|${line}|" "$TMUX_SESSION_CONFIG_FILE"
     else
         echo "$line" >> "$TMUX_SESSION_CONFIG_FILE"
+    fi
+
+    if $is_new; then
+        chmod 600 "$TMUX_SESSION_CONFIG_FILE"
     fi
 }

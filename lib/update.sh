@@ -65,6 +65,18 @@ do_self_update() {
 
     echo "Updating tmux-session v${VERSION} -> v${remote_version}"
     if run_remote_installer "$install_prefix"; then
+        # Fix existing config file permissions if group/world-writable
+        local config_file="${TMUX_SESSION_CONFIG_FILE:-$(default_config_file)}"
+        if [[ -f "$config_file" ]]; then
+            local perms=""
+            perms=$(stat -c '%a' "$config_file" 2>/dev/null \
+                 || stat -f '%OLp' "$config_file" 2>/dev/null \
+                 || echo "")
+            if [[ -n "$perms" ]] && (( (8#${perms} & 8#022) != 0 )); then
+                chmod 600 "$config_file"
+                echo "Fixed config file permissions: ${config_file}"
+            fi
+        fi
         echo "Update complete."
         return 0
     fi
