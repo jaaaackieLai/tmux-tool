@@ -1,6 +1,6 @@
 # tmux-tool
 
-[![Version](https://img.shields.io/badge/version-1.4.0-green)](https://github.com/jaaaackielai/tmux-tool/releases)
+[![Version](https://img.shields.io/badge/version-1.4.2-green)](https://github.com/jaaaackielai/tmux-tool/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macOS-lightgrey)]()
 [![Pure Bash](https://img.shields.io/badge/pure-bash-orange)]()
