@@ -187,6 +187,38 @@ load 'test_helper'
     [[ "$output" == *"SEND:send-keys -t proj pnpm dev C-m"* ]]
 }
 
+@test "action_attach does not restart AI summaries after detach" {
+    run bash -c "
+        source '${LIB_DIR}/constants.sh'
+        source '${LIB_DIR}/utils.sh'
+        source '${LIB_DIR}/sessions.sh'
+        source '${LIB_DIR}/ai.sh'
+        source '${LIB_DIR}/render.sh'
+        source '${LIB_DIR}/actions.sh'
+
+        SESSIONS=(alpha)
+        SELECTED=0
+        SAVED_TTY=''
+
+        cursor_show() { :; }
+        cursor_hide() { :; }
+        clear_screen() { :; }
+        refresh_sessions() { :; }
+        render() { :; }
+        start_ai_summaries() { echo 'AI_RESTARTED'; }
+
+        tmux() {
+            if [[ \"\$1\" == 'attach' ]]; then
+                return 0
+            fi
+        }
+
+        action_attach
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" != *"AI_RESTARTED"* ]]
+}
+
 @test "action_new attaches to session after creation" {
     run bash -c "
         source '${LIB_DIR}/constants.sh'

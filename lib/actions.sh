@@ -15,7 +15,6 @@ action_attach() {
     cursor_hide
     VIEW_MODE="list"
     refresh_sessions
-    start_ai_summaries
     DIRTY=1
 }
 

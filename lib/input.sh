@@ -3,7 +3,7 @@
 
 read_key() {
     local key
-    IFS= read -r -s -n 1 -t 0.5 key 2>/dev/null || { echo "TIMEOUT"; return; }
+    IFS= read -r -s -n 1 -t 0.2 key 2>/dev/null || { echo "TIMEOUT"; return; }
 
     if [[ "$key" == $'\x1b' ]]; then
         local seq1 seq2
